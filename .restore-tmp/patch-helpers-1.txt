@@ -1,0 +1,58 @@
+export function stripHtml(html) {
+  return String(html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function tryParseJsonObject(value) {
+  if (!value) return null;
+  if (typeof value === 'object' && !Array.isArray(value)) return value;
+
+  const raw = String(value).trim();
+  if (!raw.startsWith('{') && !raw.startsWith('[')) return null;
+
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeDescriptions(descriptions = {}) {
+  let source = descriptions;
+
+  if (typeof source === 'string') {
+    source = tryParseJsonObject(source) || {};
+  }
+
+  if (!source || typeof source !== 'object' || Array.isArray(source)) return {};
+
+  const normalized = { ...source };
+  const parsedDefault = tryParseJsonObject(normalized.default);
+
+  if (parsedDefault) {
+    delete normalized.default;
+    Object.entries(parsedDefault).forEach(([key, value]) => {
+      if (!normalized[key] && value) normalized[key] = value;
+    });
+  } else if (typeof normalized.default === 'string' && normalized.default.trim().startsWith('{')) {
+    delete normalized.default;
+  }
+
+  return normalized;
+}
+
+function formatDescriptionText(value) {
+  if (value == null || value === '') return '';
+  if (typeof value === 'object') {
+    if (Array.isArray(value)) {
+      return value.map(formatDescriptionText).filter(Boolean).join('\n');
+    }
+    return Object.values(value).map(formatDescriptionText).filter(Boolean).join('\n');
+  }
+
+  let text = stripHtml(String(value));
+  text = text.replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\t/g, '\t');
+  return text.trim();
+}
+
+export function formatCancellationSummary(cancellation) {

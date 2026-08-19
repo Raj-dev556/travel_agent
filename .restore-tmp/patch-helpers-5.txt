@@ -1,0 +1,49 @@
+export function firstResult(payload) {
+  if (Array.isArray(payload?.results)) return payload.results[0] || null;
+  if (Array.isArray(payload?.data?.results)) return payload.data.results[0] || null;
+  if (Array.isArray(payload?.hotels)) return payload.hotels[0] || null;
+  return payload?.result || payload?.data || null;
+}
+
+export function extractLiveDetail(payload) {
+  const fromResults = firstResult(payload);
+  if (fromResults && (Array.isArray(fromResults.options) || fromResults.hotelName || fromResults.tjHotelId)) {
+    return fromResults;
+  }
+
+  if (payload && typeof payload === 'object') {
+    if (Array.isArray(payload.options) || payload.hotelName || payload.tjHotelId) return payload;
+    if (payload.data && typeof payload.data === 'object') {
+      if (Array.isArray(payload.data.options) || payload.data.hotelName || payload.data.tjHotelId) {
+        return payload.data;
+      }
+    }
+  }
+
+  return fromResults;
+}
+
+export function fallbackRoomFromSearchQuery(query = {}) {
+  const totalRateINR = Number(query.amount || 0);
+  if (totalRateINR <= 0 && !query.optionId) return null;
+
+  return {
+    id: query.optionId || query.roomName || 'search-listing-room',
+    optionId: query.optionId || '',
+    name: query.roomName || 'Room from search results',
+    mealBasis: query.mealBasis || 'Room Only',
+    boardBasis: query.mealBasis || 'Room Only',
+    refundable: false,
+    panRequired: false,
+    panOptional: true,
+    cancellation: {},
+    cancellationSummary: 'See room details for cancellation policy',
+    totalRateINR,
+    nightlyRateINR: totalRateINR,
+    taxesAndFees: 0,
+    pricing: { totalPrice: totalRateINR },
+    inclusions: [],
+    images: [],
+    fromSearchListing: true,
+  };
+}

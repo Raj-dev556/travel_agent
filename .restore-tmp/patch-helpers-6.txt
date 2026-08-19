@@ -1,0 +1,42 @@
+export function optionToRoom(option) {
+  const room = (option?.roomInfo || [])[0] || option?.room || {};
+  const pricing = option?.pricing || option?.price || option?.fare || {};
+  const compliance = option?.compliance || {};
+  const totalRateINR = Number(
+    pricing.totalPrice
+    ?? pricing.totalAmount
+    ?? pricing.total
+    ?? pricing.amount
+    ?? option.totalRateINR
+    ?? option.totalPrice
+    ?? option.amount
+    ?? 0,
+  );
+  const nightlyRateINR = Number(
+    pricing.basePrice
+    ?? pricing.nightly
+    ?? pricing.priceWithoutTax
+    ?? option.nightlyRateINR
+    ?? totalRateINR
+    ?? 0,
+  );
+
+  return {
+    id: option?.optionId || room.id || room.name,
+    optionId: option?.optionId || '',
+    name: room.name || option?.roomName || option?.name || 'Room',
+    mealBasis: option?.mealBasis || option?.boardBasis || 'Room Only',
+    boardBasis: option?.mealBasis || option?.boardBasis || 'Room Only',
+    refundable: Boolean(option?.cancellation?.isRefundable ?? option?.refundable),
+    panRequired: Boolean(compliance.panRequired),
+    panOptional: !compliance.panRequired,
+    cancellation: option?.cancellation || {},
+    cancellationSummary: formatCancellationSummary(option?.cancellation),
+    totalRateINR,
+    nightlyRateINR,
+    taxesAndFees: Number(pricing.taxes || 0) + Number(pricing.mf || 0) + Number(pricing.mft || 0),
+    pricing,
+    inclusions: Array.isArray(option?.inclusions) ? option.inclusions : [],
+    images: [],
+  };
+}

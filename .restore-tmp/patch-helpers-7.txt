@@ -1,0 +1,32 @@
+export function imageUrl(image) {
+  if (!image) return '';
+  if (typeof image === 'string') return image;
+
+  const links = image.links;
+  if (links && typeof links === 'object') {
+    const preferred = links.XXL || links.XL || links.L || links.M || links.S;
+    if (preferred?.href) return preferred.href;
+    const first = Object.values(links).find((link) => link?.href);
+    if (first?.href) return first.href;
+  }
+
+  return image.url || image.imageUrl || image.link || image.href || image.path || '';
+}
+
+export function collectHotelImages(...sources) {
+  const seen = new Set();
+  const urls = [];
+
+  for (const source of sources) {
+    if (!Array.isArray(source)) continue;
+
+    for (const item of source) {
+      const url = imageUrl(item);
+      if (!url || seen.has(url)) continue;
+      seen.add(url);
+      urls.push(url);
+    }
+  }
+
+  return urls;
+}

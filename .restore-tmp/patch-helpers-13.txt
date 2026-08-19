@@ -1,0 +1,64 @@
+export function normalizeAmenityList(amenities) {
+  if (!Array.isArray(amenities)) return [];
+  return amenities
+    .map((item) => {
+      if (typeof item === 'string') return { id: item, name: item };
+      return {
+        id: String(item?.id || item?.name || item?.label || ''),
+        name: String(item?.name || item?.label || item?.id || ''),
+      };
+    })
+    .filter((item) => item.name);
+}
+
+export function formatPolicyDateTime(value) {
+  if (!value) return '--';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value).slice(0, 10);
+  return date.toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+}
+
+export function groupRoomsByType(rooms = []) {
+  const groups = new Map();
+
+  for (const room of rooms) {
+    const key = room.name || 'Room';
+    if (!groups.has(key)) {
+      groups.set(key, {
+        name: key,
+        roomId: room.roomId || '',
+        bedType: room.bedType || '',
+        maxGuests: room.maxGuests || 0,
+        images: room.images || [],
+        amenities: room.amenities || [],
+        rates: [],
+      });
+    }
+    const group = groups.get(key);
+    if (!group.bedType && room.bedType) group.bedType = room.bedType;
+    if (!group.maxGuests && room.maxGuests) group.maxGuests = room.maxGuests;
+    if (!group.images.length && room.images?.length) group.images = room.images;
+    if (!group.amenities.length && room.amenities?.length) group.amenities = room.amenities;
+    group.rates.push(room);
+  }
+
+  return Array.from(groups.values()).map((group) => ({
+    ...group,
+    rates: group.rates.sort((a, b) => a.totalRateINR - b.totalRateINR),
+  }));
+}
+
+export function filterRoomOptions(rooms, filters) {
+  return rooms.filter((room) => {
+    if (filters.roomSearch) {
+      const needle = String(filters.roomSearch).trim().toLowerCase();
+      if (needle && !String(room.name || '').toLowerCase().includes(needle)) return false;
+    }
+    if (filters.refundable && !room.refundable) return false;

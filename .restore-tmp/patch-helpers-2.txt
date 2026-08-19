@@ -1,0 +1,26 @@
+export function collectDescriptions(descriptions = {}) {
+  const normalized = normalizeDescriptions(descriptions);
+  const sections = [
+    ['headline', 'Headline'],
+    ['location', 'Location'],
+    ['amenities', 'Amenities'],
+    ['rooms', 'Rooms'],
+    ['dining', 'Dining'],
+    ['business_amenities', 'Business amenities'],
+    ['attractions', 'Attractions'],
+    ['spoken_languages', 'Spoken languages'],
+    ['onsite_payments', 'Onsite payments'],
+    ['default', 'Overview'],
+  ];
+
+  const seenTexts = new Set();
+
+  return sections
+    .map(([key, title]) => {
+      const text = formatDescriptionText(normalized[key]);
+      if (!text || seenTexts.has(text)) return null;
+      seenTexts.add(text);
+      return { title, text };
+    })
+    .filter(Boolean);
+}

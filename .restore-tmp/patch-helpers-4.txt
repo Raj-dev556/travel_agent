@@ -1,0 +1,95 @@
+    .filter(Boolean);
+}
+
+export function scoreText(score) {
+  const value = Number(score || 0);
+  if (value >= 4.6) return 'Excellent';
+  if (value >= 4.1) return 'Very Good';
+  if (value >= 3.6) return 'Good';
+  if (value > 0) return 'Average';
+  return '';
+}
+
+export function fmtCount(n) {
+  return new Intl.NumberFormat('en-IN').format(Number(n) || 0);
+}
+
+export function buildAddressLine(address = {}, fallbackCity = '') {
+  return address.fullAddress || [
+    address.line1,
+    address.line2,
+    address.cityName || fallbackCity,
+    address.stateName,
+    address.countryName,
+  ].filter(Boolean).join(', ');
+}
+
+export function collectPolicySections(policies = {}) {
+  const check = policies.checkInCheckOut || {};
+  const rows = [];
+
+  const checkIn = [check.checkInFrom, check.checkInTill].filter(Boolean).join(' - ');
+  const checkOut = [check.checkOutFrom, check.checkOutTill].filter(Boolean).join(' - ');
+  if (checkIn) rows.push({ title: 'Check-in', text: checkIn });
+  if (checkOut) rows.push({ title: 'Check-out', text: checkOut });
+  if (policies.specialInstructions) rows.push({ title: 'Special instructions', text: policies.specialInstructions });
+  if (policies.knowBeforeYouGo) rows.push({ title: 'Know before you go', text: policies.knowBeforeYouGo });
+  if (policies.mandatoryFees) rows.push({ title: 'Fees', text: policies.mandatoryFees });
+
+  return rows;
+}
+
+const REVIEW_CATEGORY_KEYS = [
+  ['cleanliness', 'Cleanliness'],
+  ['comfort', 'Comfort'],
+  ['facilities', 'Facilities'],
+  ['staff', 'Staff'],
+  ['location', 'Location'],
+  ['value', 'Value'],
+  ['room', 'Room'],
+  ['service', 'Service'],
+];
+
+export function extractReviewSummary(source = {}, fallback = {}) {
+  const reviewScore = Number(
+    source.reviewScore
+    ?? source.rating
+    ?? source.overallRating
+    ?? fallback.reviewScore
+    ?? 0,
+  );
+  const reviewCount = Number(
+    source.reviewCount
+    ?? source.ratingCount
+    ?? source.totalReviews
+    ?? fallback.reviewCount
+    ?? 0,
+  );
+
+  const ratingRoot = source.ratings || source.ratingBreakdown || source.categoryRatings || source.reviewRatings || {};
+  const categories = REVIEW_CATEGORY_KEYS
+    .map(([key, label]) => {
+      const raw = ratingRoot[key] ?? source[key];
+      const score = Number(raw?.score ?? raw?.rating ?? raw ?? 0);
+      return score > 0 ? { key, label, score } : null;
+    })
+    .filter(Boolean);
+
+  const highlights = Array.isArray(source.goodToKnow)
+    ? source.goodToKnow
+    : Array.isArray(source.highlights)
+      ? source.highlights
+      : [];
+
+  return {
+    reviewScore,
+    reviewCount,
+    categories,
+    highlights: highlights.map((item) => (
+      typeof item === 'string' ? item : item?.label || item?.text || item?.name || ''
+    )).filter(Boolean),
+    label: scoreText(reviewScore),
+  };
+}
+
+export function optionToRoom(option) {

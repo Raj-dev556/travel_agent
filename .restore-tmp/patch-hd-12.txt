@@ -1,0 +1,131 @@
+function DetailBookingCard({
+  leadRoom,
+  liveLoading,
+  roomCount,
+  totalAdults,
+  hasMultipleRooms,
+  roomsPanelExpanded,
+  onBook,
+  onViewDetails,
+  onViewAllRooms,
+}) {
+  return (
+    <div className="rounded-md border border-slate-200 bg-white p-4 shadow-sm">
+      {liveLoading && !leadRoom ? (
+        <div className="inline-flex items-center gap-2 text-sm text-slate-500">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          Loading live rates...
+        </div>
+      ) : leadRoom ? (
+        <>
+          <div className="flex items-start justify-between gap-3">
+            <h3 className="text-base font-bold leading-snug text-slate-900">{leadRoom.name}</h3>
+            <button
+              type="button"
+              onClick={onViewDetails}
+              className="shrink-0 text-sm font-semibold text-[#2f80ed] hover:underline"
+            >
+              View details
+            </button>
+          </div>
+
+          <p className="mt-2 text-sm text-slate-600">
+            {roomCount} Room for {totalAdults} Adult{totalAdults === 1 ? '' : 's'}
+          </p>
+
+          <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-slate-700">
+            <li>{leadRoom.mealBasis || 'Room Only'}</li>
+            <li>{leadRoom.panRequired ? 'PAN Required' : 'PAN (Optional)'}</li>
+            <li>{leadRoom.refundable ? 'Refundable' : 'Non-refundable'}</li>
+          </ul>
+
+          <div className="mt-4 text-3xl font-bold text-slate-900">{fmtINR(leadRoom.totalRateINR)}</div>
+          <p className="text-xs text-slate-500">Total Price for {roomCount} room</p>
+
+          <button
+            type="button"
+            onClick={onBook}
+            disabled={leadRoom.fromSearchListing}
+            className={clsx(
+              'mt-4 inline-flex w-full items-center justify-center rounded-md px-4 py-3 text-sm font-semibold uppercase tracking-wide text-white',
+              leadRoom.fromSearchListing
+                ? 'bg-slate-300 cursor-not-allowed'
+                : 'bg-accent-500 hover:bg-accent-600',
+            )}
+          >
+            {leadRoom.fromSearchListing ? 'Live rates unavailable' : 'Book Now'}
+          </button>
+
+          {hasMultipleRooms && (
+            <div className="mt-4 border-t border-slate-200 pt-4">
+              <p className="text-sm font-semibold text-slate-800">More options available</p>
+              <button
+                type="button"
+                onClick={onViewAllRooms}
+                className={clsx(
+                  'mt-2 inline-flex w-full items-center justify-center gap-2 rounded-md border-2 px-4 py-2.5 text-sm font-semibold transition',
+                  roomsPanelExpanded
+                    ? 'border-accent-500 bg-accent-50 text-accent-700'
+                    : 'border-accent-500 bg-white text-accent-600 hover:bg-accent-50',
+                )}
+              >
+                View all rooms
+                <ChevronDown className={clsx('w-4 h-4 transition-transform', roomsPanelExpanded && 'rotate-180')} />
+              </button>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="text-sm text-slate-500">Live rates unavailable</div>
+      )}
+    </div>
+  );
+}
+
+function ReviewSummaryBar({ reviewSummary, onOpenReviews }) {
+  const hasReviews = reviewSummary.reviewScore > 0;
+
+  return (
+    <div className="flex items-center gap-3 rounded-md border border-slate-200 bg-white px-3 py-3 shadow-sm">
+      <div className={clsx(
+        'shrink-0 rounded px-2 py-1.5 text-sm font-bold text-white min-w-[2.75rem] text-center',
+        hasReviews ? 'bg-emerald-600' : 'bg-emerald-600/25 text-emerald-800',
+      )}
+      >
+        {hasReviews ? reviewSummary.reviewScore.toFixed(1) : '—'}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="text-sm font-semibold text-slate-800">
+          {hasReviews ? (reviewSummary.label || scoreText(reviewSummary.reviewScore)) : 'Excellent'}
+        </div>
+        <div className="text-xs text-slate-500">
+          {hasReviews && reviewSummary.reviewCount > 0
+            ? `${fmtCount(reviewSummary.reviewCount)} Ratings`
+            : 'Ratings not available yet'}
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={onOpenReviews}
+        className="shrink-0 text-sm font-semibold text-[#2f80ed] hover:underline"
+      >
+        Read all reviews
+      </button>
+    </div>
+  );
+}
+
+function CheckInOutBar({ checkIn, checkOut }) {
+  return (
+    <div className="grid grid-cols-1 divide-y rounded-md border border-slate-200 bg-white text-sm shadow-sm overflow-hidden sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+      <div className="px-4 py-3">
+        <div className="font-semibold text-slate-800">Check-in from:</div>
+        <div className="mt-0.5 text-slate-600">{checkIn || 'Contact hotel for timings'}</div>
+      </div>
+      <div className="px-4 py-3">
+        <div className="font-semibold text-slate-800">Check-out until:</div>
+        <div className="mt-0.5 text-slate-600">{checkOut || 'Contact hotel for timings'}</div>
+      </div>
+    </div>
+  );
+}

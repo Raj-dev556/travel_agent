@@ -1,0 +1,21 @@
+export function extractCheckInOutTimes(policies = {}) {
+  const check = policies.checkInCheckOut || {};
+  const checkInFrom = check.checkInFrom || check.checkin_from || check.checkinFrom || '';
+  const checkInTill = check.checkInTill || check.checkin_till || check.checkinTill || '';
+  const checkOutTill = check.checkOutTill || check.checkout_till || check.checkoutTill || '';
+  const checkOutFrom = check.checkOutFrom || check.checkout_from || check.checkoutFrom || '';
+
+  let checkIn = '';
+  if (checkInFrom && checkInTill) checkIn = `${checkInFrom} - ${checkInTill}`;
+  else if (checkInFrom) checkIn = `${checkInFrom} - anytime`;
+  else if (checkInTill) checkIn = checkInTill;
+
+  const checkOut = checkOutTill || checkOutFrom || '';
+
+  return { checkIn, checkOut };
+}
+
+export function collectPolicySections(policies = {}) {
+  const check = policies.checkInCheckOut || {};
+  const rows = [];
+  const { checkIn, checkOut } = extractCheckInOutTimes(policies);
