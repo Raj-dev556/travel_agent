@@ -25,6 +25,8 @@ export const SIDEBAR_SECTIONS = [
   { id: 'visa', path: '/visa', label: 'Visa Operations', icon: BadgeCheck, roles: ['Company Admin', 'Visa Operations', 'Travel Desk'] },
   { id: 'reports', path: '/reports', label: 'Reports', icon: FileSpreadsheet, roles: ['Company Admin', 'Finance Approver', 'Reporting Manager'] },
   { id: 'access', path: '/user-access', label: 'User Access', icon: ShieldCheck, roles: ['Company Admin', 'HR Admin'] },
+  { id: 'invoice', path: '/invoice', label: 'Invoice', icon: FileSpreadsheet, roles: ['Company Admin', 'Finance Approver'] },
+
 ];
 
 export default function AppSidebar() {
@@ -33,7 +35,7 @@ export default function AppSidebar() {
   const visibleSections = SIDEBAR_SECTIONS.filter((item) => !item.roles || item.roles.some((role) => roles.includes(role)));
 
   return (
-    <aside className={`sticky top-[6.25rem] h-[calc(100vh-6.25rem)] border-r border-slate-900/20 bg-slate-950 text-slate-100 shadow-xl shadow-slate-900/10 transition-all ${collapsed ? 'w-14' : 'w-14 lg:w-64'} flex shrink-0 flex-col`}>
+    <aside className={`sticky border-r border-slate-900/20 bg-slate-950 text-slate-100 shadow-xl shadow-slate-900/10 transition-all ${collapsed ? 'w-14' : 'w-14 lg:w-64'} flex shrink-0 flex-col`}>
       <button
         onClick={() => setCollapsed((current) => !current)}
         className="hidden h-11 items-center justify-start border-b border-white/10 px-4 text-slate-300 hover:text-white lg:flex"
@@ -60,9 +62,8 @@ function SideItem({ item, collapsed }) {
     <NavLink
       to={path}
       title={label}
-      className={({ isActive }) => `mx-2 mb-1 flex items-center gap-3 rounded-lg border-l-2 px-3 py-2.5 text-left text-sm font-semibold transition ${
-        isActive ? 'border-accent-500 bg-white/10 text-white shadow-sm' : 'border-transparent text-slate-300 hover:bg-white/5 hover:text-white'
-      }`}
+      className={({ isActive }) => `mx-2 mb-1 flex items-center gap-3 rounded-lg border-l-2 px-3 py-2.5 text-left text-sm font-semibold transition ${isActive ? 'border-accent-500 bg-white/10 text-white shadow-sm' : 'border-transparent text-slate-300 hover:bg-white/5 hover:text-white'
+        }`}
     >
       <Icon className="w-4 h-4 text-accent-400 shrink-0" />
       {!collapsed && <span className="hidden flex-1 truncate lg:block">{label}</span>}

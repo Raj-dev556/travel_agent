@@ -33,6 +33,8 @@ export default function Layout() {
   const { user, tenant, logout } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
+  const [accountOpen, setAccountOpen] = useState(false);
+  const accountRef = useRef(null);
   const isFlightFlow =
     location.pathname.startsWith('/flights/itinerary') ||
     location.pathname.startsWith('/flights/passenger') ||
@@ -47,6 +49,16 @@ export default function Layout() {
 
   const tenantLabel = (tenant || 'tenant').toUpperCase();
   const agencyId = '6811';
+  const userName = user?.fullName || user?.name || 'Demo User';
+  const userType = user?.roles?.[0] || user?.role || 'User';
+
+  useEffect(() => {
+    function handleClick(event) {
+      if (accountRef.current && !accountRef.current.contains(event.target)) setAccountOpen(false);
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
 
   async function handleLogout() {
     const refreshToken = useAuthStore.getState().refreshToken;
@@ -63,38 +75,15 @@ export default function Layout() {
   return (
     <div className="min-h-screen flex flex-col bg-slate-100">
       <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur">
-        <div className="max-w-screen-2xl mx-auto px-4 h-9 flex items-center justify-end gap-4 overflow-x-auto whitespace-nowrap text-[11px] text-slate-600 font-semibold uppercase tracking-wide">
-          <span className="text-slate-700">HELLO {tenantLabel} PVT LTD ({agencyId})</span>
-          <span className="text-slate-700 flex items-center gap-1">
-            MY BALANCE: ₹ {user?.balance != null ? Number(user.balance).toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '0.00'}
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 text-slate-400 cursor-pointer hover:text-accent-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6" /><path d="M1 20v-6h6" /><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" /></svg>
-          </span>
-          <span className="text-slate-700 flex items-center gap-1 cursor-pointer hover:text-[#f58a1f]">RECHARGE
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2" /><line x1="2" y1="10" x2="22" y2="10" /></svg>
-          </span>
-          <span className="text-slate-700 flex items-center gap-1 cursor-pointer hover:text-[#f58a1f]">SALES REP
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-          </span>
-          <span className="text-slate-700 flex items-center gap-1">TJ CASH: {user?.tjCash ?? 0}
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 text-green-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" /></svg>
-          </span>
-          <button onClick={handleLogout} className="text-slate-700 hover:text-red-600 font-semibold">LOGOUT
-          </button>
-        </div>
+     
 
         <div className="max-w-screen-2xl mx-auto px-4 h-16 flex items-center gap-6">
           <Link to="/" className="flex items-end gap-1 select-none">
-            {/* Leaf Icon */}
             <img
-              src="/TH-LOGO.png"
-              alt="TripHobo"
-              className="h-16 w-auto"
+              src="/acuitilabs-logo.png"
+              alt="AcuitiLabs"
+              className="h-14 w-auto"
             />
-
-            {/* Text */}
-            <span className="text-[42px] font-black leading-none tracking-tight">
-
-            </span>
           </Link>
 
           <nav className="ml-auto hidden lg:flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50/90 p-1 text-[12px] font-bold tracking-wide text-slate-700">
@@ -118,7 +107,42 @@ export default function Layout() {
                 )
             ))}
           </nav>
+ <div ref={accountRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setAccountOpen((open) => !open)}
+              className="inline-flex items-center gap-3 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-left shadow-sm transition hover:bg-white"
+            >
+              <span className="grid h-7 w-7 place-items-center rounded-full bg-slate-900 text-xs font-bold text-white">
+                {userName.slice(0, 1).toUpperCase()}
+              </span>
+              <span className="hidden sm:block">
+                <span className="block text-xs font-bold leading-tight text-slate-800">{userName}</span>
+                <span className="block text-[10px] font-semibold uppercase tracking-wide text-slate-500">{userType}</span>
+              </span>
+              <span className={`text-[10px] text-slate-500 transition ${accountOpen ? 'rotate-180' : ''}`}>▼</span>
+            </button>
 
+            {accountOpen && (
+              <div className="absolute right-0 top-full z-50 mt-2 w-72 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+                <div className="border-b border-slate-100 px-4 py-3">
+                  <div className="text-sm font-bold text-slate-900">{userName}</div>
+                  <div className="mt-0.5 text-xs text-slate-500">{userType}</div>
+                  <div className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                    {tenantLabel} PVT LTD ({agencyId})
+                  </div>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="flex w-full items-center justify-between px-4 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50"
+                  type="button"
+                >
+                  Logout
+                  <span aria-hidden="true">-&gt;</span>
+                </button>
+              </div>
+            )}
+          </div>
           <div className="ml-auto lg:hidden flex items-center gap-2">
             <span className="pill bg-orange-50 text-accent-600 border border-orange-100 capitalize text-[10px]">
               {user?.role?.replace('_', ' ') || 'role'}

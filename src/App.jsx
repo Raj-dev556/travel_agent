@@ -44,6 +44,7 @@ const HotelDetail = lazy(() => import('./pages/hotels/HotelDetail.jsx'));
 const HotelBook = lazy(() => import('./pages/hotels/HotelBook.jsx'));
 const HotelConfirm = lazy(() => import('./pages/hotels/HotelConfirm.jsx'));
 const HotelInvoice = lazy(() => import('./pages/hotels/HotelInvoice.jsx'));
+const Invoice = lazy(() => import('./pages/Invoice.jsx'));
 
 function Protected({ children }) {
   const token = useAuthStore((s) => s.accessToken);
@@ -90,6 +91,7 @@ export default function App() {
         <Route path="visa" element={<VisaOperationsPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="user-access" element={<UserAccessPage />} />
+        <Route path="invoice" element={<Invoice />} />
         <Route path="grade-policies/create" element={<GradePolicyCreatePage />} />
         <Route path="grade-policies/:grade/edit" element={<GradePolicyEditPage />} />
         <Route path="grade-policies/upload" element={<GradePolicyUploadPage />} />

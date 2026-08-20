@@ -137,6 +137,11 @@ function hotelRows(body = {}) {
   const cityId = Number(body.cityRegionId || body.searchQuery?.cityRegionId || 0);
   const city = hotelCities.find((item) => Number(item.cityRegionId) === cityId)?.regionName;
   let rows = city ? hotels.filter((hotel) => hotel.city.toLowerCase() === city.toLowerCase()) : hotels;
+  if (city && rows.length < 6) {
+    const selectedIds = new Set(rows.map((hotel) => hotel.tjHotelId));
+    const supplementalRows = hotels.filter((hotel) => !selectedIds.has(hotel.tjHotelId));
+    rows = [...rows, ...supplementalRows].slice(0, 8);
+  }
   const filters = body.appliedFilters || {};
   if (filters.hotelName) rows = filterText(rows, filters.hotelName, ['name']);
   if (filters.ratings?.length) rows = rows.filter((hotel) => filters.ratings.includes(String(hotel.starRating)));
@@ -389,7 +394,10 @@ export async function demoAdapter(config) {
   if (method === 'POST' && path === '/flights/ticket') return response(config, { bookingId: body.bookingId, status: 'TICKETED' });
   if (method === 'POST' && path === '/flights/cancel') return response(config, { bookingId: body.bookingId, status: 'CANCELLED' });
 
-  if (method === 'GET' && path === '/cities/autocomplete') return response(config, { results: filterText(hotelCities, params.q, ['name', 'regionName', 'countryName']).slice(0, Number(params.limit || 10)) });
+  if (method === 'GET' && path === '/cities/autocomplete') {
+    const rows = filterText(hotelCities, params.q, ['name', 'displayName', 'regionName', 'countryName', 'fullRegionName']);
+    return response(config, { results: rows.slice(0, Number(params.limit || 10)) });
+  }
   if (method === 'GET' && path === '/countries') return response(config, { results: countries, items: countries });
   if (method === 'POST' && path === '/hotels/listing') return response(config, hotelListing(config));
   if (method === 'POST' && path === '/hotels/listing/filter') return response(config, hotelFilters(config));

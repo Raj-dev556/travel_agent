@@ -111,6 +111,7 @@ export const hotelCities = [
   { id: '1002', cityRegionId: 1002, name: 'BENGALURU', displayName: 'BENGALURU', regionName: 'Bengaluru', countryName: 'India', type: 'CITY', fullRegionName: 'Bengaluru, Karnataka, India' },
   { id: '1003', cityRegionId: 1003, name: 'DELHI', displayName: 'DELHI', regionName: 'Delhi', countryName: 'India', type: 'CITY', fullRegionName: 'Delhi, India' },
   { id: '1004', cityRegionId: 1004, name: 'SINGAPORE', displayName: 'SINGAPORE', regionName: 'Singapore', countryName: 'Singapore', type: 'CITY', fullRegionName: 'Singapore' },
+  { id: '1005', cityRegionId: 1005, name: 'PUNE', displayName: 'PUNE', regionName: 'Pune', countryName: 'India', type: 'CITY', fullRegionName: 'Pune, Maharashtra, India' },
 ];
 
 export const hotels = [
@@ -120,6 +121,8 @@ export const hotels = [
   { tjHotelId: '700202', hotelId: '700202', name: 'Radisson Blu Atria Bengaluru', city: 'Bengaluru', regionName: 'Palace Road', propertyType: 'Hotel', starRating: 4, mealBasis: 'Breakfast Included', totalRateINR: 13200, nightlyRateINR: 6600, reviewScore: 4.2, reviewCount: 978, amenities: ['Wi-Fi', 'Breakfast', 'Conference room'], latitude: 12.9844, longitude: 77.5879 },
   { tjHotelId: '700301', hotelId: '700301', name: 'Roseate House New Delhi', city: 'Delhi', regionName: 'Aerocity', propertyType: 'Hotel', starRating: 5, mealBasis: 'Breakfast Included', totalRateINR: 17400, nightlyRateINR: 8700, reviewScore: 4.5, reviewCount: 1304, amenities: ['Airport transfer', 'Breakfast', 'Spa'], latitude: 28.5512, longitude: 77.1211 },
   { tjHotelId: '700401', hotelId: '700401', name: 'Parkroyal Collection Marina Bay', city: 'Singapore', regionName: 'Marina Bay', propertyType: 'Hotel', starRating: 5, mealBasis: 'Breakfast Included', totalRateINR: 38600, nightlyRateINR: 19300, reviewScore: 4.7, reviewCount: 2418, amenities: ['Marina view', 'Breakfast', 'Business centre'], latitude: 1.2917, longitude: 103.8572 },
+  { tjHotelId: '700501', hotelId: '700501', name: 'Conrad Pune', city: 'Pune', regionName: 'Sangamvadi', propertyType: 'Business Hotel', starRating: 5, mealBasis: 'Breakfast Included', totalRateINR: 15800, nightlyRateINR: 7900, reviewScore: 4.6, reviewCount: 1188, amenities: ['Wi-Fi', 'Breakfast', 'Conference room', 'Pool'], latitude: 18.5352, longitude: 73.8835 },
+  { tjHotelId: '700502', hotelId: '700502', name: 'Hyatt Regency Pune', city: 'Pune', regionName: 'Viman Nagar', propertyType: 'Hotel', starRating: 5, mealBasis: 'Room Only', totalRateINR: 14600, nightlyRateINR: 7300, reviewScore: 4.4, reviewCount: 1042, amenities: ['Airport transfer', 'Workspace', 'Gym'], latitude: 18.5586, longitude: 73.9127 },
 ];
 
 export const countries = [

@@ -76,7 +76,68 @@ import {
 
 const fmtINR = (n) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n);
 const BOOKINGS_PAGE_SIZE = 5;
-const POPULAR_CITIES = [];
+const POPULAR_CITIES = [
+  {
+    id: '1001',
+    code: '1001',
+    cityRegionId: 1001,
+    name: 'MUMBAI',
+    displayName: 'MUMBAI',
+    state: 'MAHARASHTRA',
+    country: 'INDIA',
+    countryCode: 'IN',
+    type: 'CITY',
+    subtitle: 'Mumbai, Maharashtra, India',
+  },
+  {
+    id: '1002',
+    code: '1002',
+    cityRegionId: 1002,
+    name: 'BENGALURU',
+    displayName: 'BENGALURU',
+    state: 'KARNATAKA',
+    country: 'INDIA',
+    countryCode: 'IN',
+    type: 'CITY',
+    subtitle: 'Bengaluru, Karnataka, India',
+  },
+  {
+    id: '1003',
+    code: '1003',
+    cityRegionId: 1003,
+    name: 'DELHI',
+    displayName: 'DELHI',
+    state: 'DELHI',
+    country: 'INDIA',
+    countryCode: 'IN',
+    type: 'CITY',
+    subtitle: 'Delhi, India',
+  },
+  {
+    id: '1004',
+    code: '1004',
+    cityRegionId: 1004,
+    name: 'SINGAPORE',
+    displayName: 'SINGAPORE',
+    state: '',
+    country: 'SINGAPORE',
+    countryCode: 'SG',
+    type: 'CITY',
+    subtitle: 'Singapore',
+  },
+  {
+    id: '1005',
+    code: '1005',
+    cityRegionId: 1005,
+    name: 'PUNE',
+    displayName: 'PUNE',
+    state: 'MAHARASHTRA',
+    country: 'INDIA',
+    countryCode: 'IN',
+    type: 'CITY',
+    subtitle: 'Pune, Maharashtra, India',
+  },
+];
 
 // const RECENT_SEARCHES = [
 //   { title: 'Dedary Resort & Spa Ubud By Ini …', start: 'Wed, 2 Sep', end: 'Sun, 6 Sep', rooms: '1 Room : 2 (A)' },
@@ -94,33 +155,33 @@ const PROMO_SLIDES = [
     title: 'THAILAND',
     body: 'The easiest way to switch off, slow down, and breathe again.',
     cta: 'BOOK NOW',
-    bg: 'bg-[linear-gradient(110deg,#0f172a_0%,#159fd3_48%,#f5c32b_100%)]',
+    bg: 'bg-[linear-gradient(110deg,#0f172a_0%,#263858_55%,#1e3a5f_100%)]',
   },
   {
     kicker: 'curated',
     title: 'SUMMER ESCAPES',
     body: 'For beaches, hills, and city getaways. Help your customers discover their perfect trip.',
     cta: 'BOOK NOW',
-    bg: 'bg-[linear-gradient(110deg,#8cc63f_0%,#159fd3_58%,#0f172a_100%)]',
+    bg: 'bg-[linear-gradient(110deg,#172033_0%,#2f4164_58%,#0f172a_100%)]',
   },
   {
     kicker: 'discover',
     title: 'INCREDIBLE EUROPE',
     body: 'Iconic cities, alpine peaks, and Mediterranean coasts in one trip.',
     cta: 'EXPLORE',
-    bg: 'bg-[linear-gradient(110deg,#f5c32b_0%,#159fd3_50%,#8cc63f_100%)]',
+    bg: 'bg-[linear-gradient(110deg,#111827_0%,#334155_55%,#1e3a5f_100%)]',
   },
 ];
 
 const DEALS = [
-  { brand: 'Disney Cruise', title: 'Magical voyages from ₹59,999*', body: 'Price starting from ₹59,999* Plus T&C apply. Rate excludes gratuity. For bookings contact cruise.ops@corptravel.com', cta: 'Book Now', bg: 'bg-[linear-gradient(135deg,#159fd3,#0f172a)]', tag: '' },
-  { brand: 'THE CLARKS HOTELS', title: 'On Offer — India\'s favourite', body: 'Limited inventory, high-demand destinations. Lock in these Sterling offers now.', cta: 'Book Now. Sell Faster.', bg: 'bg-[linear-gradient(135deg,#f5c32b,#159fd3)]', tag: 'SPECIAL DEAL' },
-  { brand: 'LARISA RESORT AM HOTELS', title: 'Save more, sell faster', body: 'Crisp-cool getaways. Book More, Save More with LaRiSa Resorts and AM Hotels.', cta: 'Book Now. Sell Faster.', bg: 'bg-[linear-gradient(135deg,#8cc63f,#159fd3)]', tag: '' },
-  { brand: 'ORCHARD HOTEL', title: 'Rendezvous Hotel by Far East Hospitality', body: 'Still looking for best stays in Singapore? Book Orchard Rendezvous Hotel at Special Rates.', cta: 'Book Now', bg: 'bg-[linear-gradient(135deg,#0f172a,#8cc63f)]', tag: 'CAN' },
-  { brand: 'BLOOM HOTELS', title: 'Deals Now Live — Don\'t Miss Out', body: 'Get Special Discount on hand-picked Bloom Hotels. Book before they sell out.', cta: 'View Deals', bg: 'bg-[linear-gradient(135deg,#f5c32b,#8cc63f)]', tag: '' },
-  { brand: 'THE SURYAA, DELHI', title: 'Special Discount', body: 'Get amazing deals at The Suryaa, New Delhi.', cta: 'Book Now', bg: 'bg-[linear-gradient(135deg,#159fd3,#f5c32b)]', tag: '' },
-  { brand: 'CARLSON BRAND LAGOON', title: '328 Hotels on special rates', body: 'Turn stays into unforgettable memories. Book now with special 328 rates.', cta: 'Book Now', bg: 'bg-[linear-gradient(135deg,#159fd3,#8cc63f)]', tag: '' },
-  { brand: 'HARD ROCK HOTEL, GOA', title: '25% off on luxury stays', body: 'Where luxury hits the right note. Perfect for your customers looking for a stay in the heart of Goa.', cta: 'Book Now', bg: 'bg-[linear-gradient(135deg,#0f172a,#159fd3)]', tag: '' },
+  { brand: 'Disney Cruise', title: 'Magical voyages from ₹59,999*', body: 'Price starting from ₹59,999* Plus T&C apply. Rate excludes gratuity. For bookings contact cruise.ops@corptravel.com', cta: 'Book Now', bg: 'bg-[linear-gradient(135deg,#0f172a,#263858)]', tag: '' },
+  { brand: 'THE CLARKS HOTELS', title: 'On Offer — India\'s favourite', body: 'Limited inventory, high-demand destinations. Lock in these Sterling offers now.', cta: 'Book Now. Sell Faster.', bg: 'bg-[linear-gradient(135deg,#172033,#2f4164)]', tag: 'SPECIAL DEAL' },
+  { brand: 'LARISA RESORT AM HOTELS', title: 'Save more, sell faster', body: 'Crisp-cool getaways. Book More, Save More with LaRiSa Resorts and AM Hotels.', cta: 'Book Now. Sell Faster.', bg: 'bg-[linear-gradient(135deg,#172033,#2f4164)]', tag: '' },
+  { brand: 'ORCHARD HOTEL', title: 'Rendezvous Hotel by Far East Hospitality', body: 'Still looking for best stays in Singapore? Book Orchard Rendezvous Hotel at Special Rates.', cta: 'Book Now', bg: 'bg-[linear-gradient(135deg,#0f172a,#1e3a5f)]', tag: 'CAN' },
+  { brand: 'BLOOM HOTELS', title: 'Deals Now Live — Don\'t Miss Out', body: 'Get Special Discount on hand-picked Bloom Hotels. Book before they sell out.', cta: 'View Deals', bg: 'bg-[linear-gradient(135deg,#172033,#2f4164)]', tag: '' },
+  { brand: 'THE SURYAA, DELHI', title: 'Special Discount', body: 'Get amazing deals at The Suryaa, New Delhi.', cta: 'Book Now', bg: 'bg-[linear-gradient(135deg,#172033,#2f4164)]', tag: '' },
+  { brand: 'CARLSON BRAND LAGOON', title: '328 Hotels on special rates', body: 'Turn stays into unforgettable memories. Book now with special 328 rates.', cta: 'Book Now', bg: 'bg-[linear-gradient(135deg,#172033,#2f4164)]', tag: '' },
+  { brand: 'HARD ROCK HOTEL, GOA', title: '25% off on luxury stays', body: 'Where luxury hits the right note. Perfect for your customers looking for a stay in the heart of Goa.', cta: 'Book Now', bg: 'bg-[linear-gradient(135deg,#0f172a,#1e3a5f)]', tag: '' },
 ];
 
 export default function HotelSearch() {
@@ -351,7 +412,7 @@ export default function HotelSearch() {
               />
               <button
                 type="submit"
-                className="min-h-14 rounded-md bg-[#f5c32b] px-8 font-semibold uppercase tracking-wide text-slate-950 hover:bg-[#e5b51f] focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#159fd3]"
+                className="min-h-14 rounded-md bg-[#ff7f2a] px-8 font-semibold uppercase tracking-wide text-white hover:bg-[#e56a00] focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#ff7f2a]"
               >
                 Search
               </button>
@@ -398,10 +459,10 @@ export default function HotelSearch() {
                 type="checkbox"
                 checked={gst}
                 onChange={(e) => setGst(e.target.checked)}
-                className="accent-[#8cc63f]"
+                className="accent-[#ff7f2a]"
               />
               Show GST claim eligible rates
-              <span className="ml-1 text-[10px] bg-[#f5c32b] text-slate-950 px-1.5 py-0.5 rounded">NEW</span>
+              <span className="ml-1 text-[10px] bg-[#ff7f2a] text-slate-950 px-1.5 py-0.5 rounded">NEW</span>
             </label>
           </div>
         </div>
@@ -458,11 +519,11 @@ export default function HotelSearch() {
                   key={search.id}
                   type="button"
                   onClick={() => navigate(buildHotelSearchResultsUrl(search.raw))}
-                  className="text-left bg-white rounded-md shadow-sm border border-slate-200 px-4 py-3 hover:border-[#159fd3]"
+                  className="text-left bg-white rounded-md shadow-sm border border-slate-200 px-4 py-3 hover:border-[#ff7f2a]"
                 >
                   <div className="font-semibold text-slate-800 truncate">{search.title}</div>
                   <div className="text-xs text-slate-500 mt-1">
-                    {search.start} <span className="text-[#159fd3]">→</span> {search.end}
+                    {search.start} <span className="text-[#ff7f2a]">→</span> {search.end}
                   </div>
                   <div className="text-xs text-slate-500 mt-1">{search.rooms}</div>
                 </button>
@@ -506,7 +567,7 @@ export default function HotelSearch() {
                       <button
                         type="button"
                         onClick={() => navigate(`/hotels/confirm?bookingId=${encodeURIComponent(b.bookingId)}`)}
-                        className="text-[#159fd3] hover:underline"
+                        className="text-[#ff7f2a] hover:underline"
                       >
                         {b.id}
                       </button>
@@ -551,7 +612,7 @@ export default function HotelSearch() {
               >
                 &lt; Prev
               </button>
-              <button className="px-3 py-1 border border-[#159fd3] text-[#159fd3] rounded">{safeBookingPage}</button>
+              <button className="px-3 py-1 border border-[#ff7f2a] text-[#ff7f2a] rounded">{safeBookingPage}</button>
               <button
                 type="button"
                 disabled={safeBookingPage >= bookingPageCount}
@@ -583,11 +644,11 @@ export default function HotelSearch() {
                   key={s.id}
                   type="button"
                   onClick={() => navigate(buildHotelSearchResultsUrl(s.raw))}
-                  className="w-60 text-left bg-white rounded-md shadow-sm border border-slate-200 px-4 py-3 hover:border-[#159fd3]"
+                  className="w-60 text-left bg-white rounded-md shadow-sm border border-slate-200 px-4 py-3 hover:border-[#ff7f2a]"
                 >
                   <div className="font-semibold text-slate-800 truncate">{s.title}</div>
                   <div className="text-xs text-slate-500 mt-1">
-                    {s.start} <span className="text-[#159fd3]">→</span> {s.end}
+                    {s.start} <span className="text-[#ff7f2a]">→</span> {s.end}
                   </div>
                   <div className="text-xs text-slate-500 mt-1">{s.rooms}</div>
                 </button>
@@ -624,7 +685,7 @@ export default function HotelSearch() {
               </div>
               <div className="p-3">
                 <div className="text-xs text-slate-600 mb-2 line-clamp-2 min-h-[2.5rem]">{d.body}</div>
-                <button className="text-xs font-semibold text-[#159fd3] hover:text-[#0f7fab]">
+                <button className="text-xs font-semibold text-slate-800 hover:text-slate-950">
                   {d.cta} →
                 </button>
               </div>
@@ -679,7 +740,17 @@ function CityField({ city, onChange, onInputChange, error = '' }) {
         // Do not cancel the first autocomplete request. React development mode
         // remounts effects once, and aborting here caused the first lookup to
         // appear as a failed/cancelled request in the browser.
-        const cities = await fetchHotelCitySuggestions(trimmedQuery, { limit: 10 });
+        const remoteCities = await fetchHotelCitySuggestions(trimmedQuery, { limit: 10 });
+        const localCities = POPULAR_CITIES.filter((city) =>
+          `${city.name} ${city.displayName} ${city.state} ${city.country} ${city.subtitle}`.toLowerCase().includes(trimmedQuery.toLowerCase()),
+        );
+        const seen = new Set();
+        const cities = [...localCities, ...remoteCities].filter((city) => {
+          const key = `${city.type || city.regionType || 'CITY'}-${city.cityRegionId || city.regionId || city.hotelId || city.code || city.name}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        }).slice(0, 10);
 
         if (requestId === latestRequestRef.current) setMatches(cities);
       } catch (err) {
@@ -711,11 +782,11 @@ function CityField({ city, onChange, onInputChange, error = '' }) {
         aria-invalid={Boolean(error)}
         aria-describedby={error ? 'hotel-destination-error' : undefined}
         className={clsx(
-          'w-full h-14 px-4 rounded-md hover:bg-slate-50 flex items-center gap-3 text-left focus:outline-none focus:ring-2 focus:ring-[#159fd3]',
+          'w-full h-14 px-4 rounded-md hover:bg-slate-50 flex items-center gap-3 text-left focus:outline-none focus:ring-2 focus:ring-[#ff7f2a]',
           error && 'border border-red-500 bg-red-50 ring-1 ring-red-400',
         )}
       >
-        <MapPin className="w-4 h-4 text-[#159fd3]" />
+        <MapPin className="w-4 h-4 text-[#ff7f2a]" />
         <div className="min-w-0 flex-1">
           {mainCityText ? (
             <>
@@ -736,7 +807,7 @@ function CityField({ city, onChange, onInputChange, error = '' }) {
             <MapPin className="w-4 h-4 text-slate-400" />
             <input
               autoFocus
-              className="flex-1 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 caret-[#159fd3] outline-none"
+              className="flex-1 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 caret-[#ff7f2a] outline-none"
               placeholder="Search Eiffel Tower, Connaught Place..."
               value={q}
               onChange={(e) => {
@@ -762,9 +833,9 @@ function CityField({ city, onChange, onInputChange, error = '' }) {
                 className="w-full flex items-start gap-3 px-4 py-3 hover:bg-orange-50 text-left border-b border-slate-50"
               >
                 {isHotelSuggestion(c) ? (
-                  <Building2 className="w-4 h-4 mt-1 text-[#159fd3] shrink-0" />
+                  <Building2 className="w-4 h-4 mt-1 text-[#ff7f2a] shrink-0" />
                 ) : (
-                  <MapPin className="w-4 h-4 mt-1 text-[#159fd3] shrink-0" />
+                  <MapPin className="w-4 h-4 mt-1 text-[#ff7f2a] shrink-0" />
                 )}
                 <div>
                   <div className="font-semibold text-slate-800 tracking-wide">{c.displayName || c.name}</div>
@@ -795,7 +866,7 @@ function DateRangeBox({ checkin, checkout, nights, onClick, error = '' }) {
       onClick={onClick}
       aria-invalid={Boolean(error)}
       className={clsx(
-        'w-full h-14 px-4 rounded-md hover:bg-slate-50 grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-left focus:outline-none focus:ring-2 focus:ring-[#159fd3]',
+        'w-full h-14 px-4 rounded-md hover:bg-slate-50 grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-left focus:outline-none focus:ring-2 focus:ring-[#ff7f2a]',
         error && 'border border-red-500 bg-red-50 ring-1 ring-red-400',
       )}
     >
@@ -804,7 +875,7 @@ function DateRangeBox({ checkin, checkout, nights, onClick, error = '' }) {
         <div className="font-semibold text-slate-800 text-sm">{prettyDate(checkin)}</div>
       </div>
       <div className="text-center">
-        <CalendarDays className="w-4 h-4 mx-auto text-[#159fd3]" />
+        <CalendarDays className="w-4 h-4 mx-auto text-[#ff7f2a]" />
         <div className="text-[11px] uppercase tracking-wide text-slate-500 mt-1">{nights}N</div>
       </div>
       <div>
@@ -874,7 +945,7 @@ function CalendarRangeModal({
             <button onClick={onClose} className="px-3 py-1.5 rounded border border-slate-300 text-sm text-slate-700 hover:bg-slate-100">
               Cancel
             </button>
-            <button onClick={onApply} className="px-3 py-1.5 rounded bg-[#f5c32b] text-slate-950 text-sm font-semibold hover:bg-[#e5b51f]">
+            <button onClick={onApply} className="px-3 py-1.5 rounded bg-[#ff7f2a] text-white text-sm font-semibold hover:bg-[#e56a00]">
               Apply Dates
             </button>
           </div>
@@ -918,7 +989,7 @@ function CalendarMonthGrid({ month, startDate, endDate, onDaySelect }) {
                   isPastDay && 'cursor-not-allowed text-slate-300 opacity-40',
                   !isSameMonth(day, month) && 'text-slate-300',
                   isSameMonth(day, month) && !selectedStart && !selectedEnd && !isPastDay && 'text-slate-700 hover:bg-slate-100',
-                  (selectedStart || selectedEnd) && 'bg-[#f5c32b] text-slate-950 font-semibold',
+                  (selectedStart || selectedEnd) && 'bg-[#ff7f2a] text-white font-semibold',
                 )}
               >
                 {format(day, 'd')}
@@ -954,11 +1025,11 @@ function RoomsBox({ rooms, totalGuests, open, setOpen, onChange, error = '' }) {
         onClick={() => setOpen(!open)}
         aria-invalid={Boolean(error)}
         className={clsx(
-          'w-full h-14 px-4 rounded-md hover:bg-slate-50 flex items-center gap-3 text-left focus:outline-none focus:ring-2 focus:ring-[#159fd3]',
+          'w-full h-14 px-4 rounded-md hover:bg-slate-50 flex items-center gap-3 text-left focus:outline-none focus:ring-2 focus:ring-[#ff7f2a]',
           error && 'border border-red-500 bg-red-50 ring-1 ring-red-400',
         )}
       >
-        <Users className="w-4 h-4 text-[#159fd3]" />
+        <Users className="w-4 h-4 text-[#ff7f2a]" />
         <div>
           <div className="text-[11px] uppercase tracking-wide text-slate-400">Persons &amp; Rooms</div>
           <div className="font-semibold text-slate-800 text-sm">{rooms.length} Room · {totalGuests} Adult{totalGuests > 1 ? 's' : ''}</div>
@@ -969,7 +1040,7 @@ function RoomsBox({ rooms, totalGuests, open, setOpen, onChange, error = '' }) {
         <div className="absolute z-50 right-0 mt-1 w-[340px] bg-white rounded-md shadow-xl border border-slate-200 p-4">
           {rooms.map((r, i) => (
             <div key={i} className="mb-3 pb-3 border-b border-slate-100 last:border-0">
-              <div className="text-[#159fd3] font-semibold text-sm">Rooms {i + 1}</div>
+              <div className="text-[#ff7f2a] font-semibold text-sm">Rooms {i + 1}</div>
               <Counter
                 label={`${r.adults} Adults`}
                 value={r.adults}
@@ -1006,8 +1077,8 @@ function RoomsBox({ rooms, totalGuests, open, setOpen, onChange, error = '' }) {
             </div>
           ))}
           <div className="flex items-center justify-between mt-2">
-            <button type="button" onClick={addRoom} className="text-[#159fd3] text-sm font-semibold">+ ADD ROOM</button>
-            <button type="button" onClick={() => setOpen(false)} className="text-[#159fd3] font-bold text-sm">DONE</button>
+            <button type="button" onClick={addRoom} className="text-[#ff7f2a] text-sm font-semibold">+ ADD ROOM</button>
+            <button type="button" onClick={() => setOpen(false)} className="text-[#ff7f2a] font-bold text-sm">DONE</button>
           </div>
         </div>
       )}
@@ -1026,13 +1097,13 @@ function Counter({ label, sub, value, min = 0, onChange }) {
         <button
           type="button"
           onClick={() => onChange(Math.max(min, value - 1))}
-          className="w-7 h-7 rounded border border-slate-200 text-slate-600 hover:border-[#8cc63f]"
+          className="w-7 h-7 rounded border border-slate-200 text-slate-600 hover:border-[#ff7f2a]"
         >−</button>
         <span className="w-5 text-center font-semibold text-sm">{value}</span>
         <button
           type="button"
           onClick={() => onChange(value + 1)}
-          className="w-7 h-7 rounded border border-slate-200 text-slate-600 hover:border-[#8cc63f]"
+          className="w-7 h-7 rounded border border-slate-200 text-slate-600 hover:border-[#ff7f2a]"
         >+</button>
       </div>
     </div>
@@ -1070,7 +1141,7 @@ function Selector({ value, onChange, options, displayLabel, showChecks = false, 
               onClick={() => { onChange(o.value); setOpen(false); }}
               className={clsx(
                 'flex w-full items-center justify-between gap-4 rounded px-3 py-2 text-left text-sm hover:bg-orange-50',
-                o.value === value && 'bg-orange-50 text-[#159fd3] font-medium',
+                o.value === value && 'bg-orange-50 text-[#ff7f2a] font-medium',
               )}
             >
               <span>{o.label}</span>
@@ -1079,7 +1150,7 @@ function Selector({ value, onChange, options, displayLabel, showChecks = false, 
                   className={clsx(
                     'h-3.5 w-3.5 rounded-sm border',
                     o.value === value
-                      ? 'border-[#159fd3] bg-[#159fd3] shadow-[inset_0_0_0_2px_white]'
+                      ? 'border-[#ff7f2a] bg-[#ff7f2a] shadow-[inset_0_0_0_2px_white]'
                       : 'border-slate-400 bg-white',
                   )}
                 />
@@ -1120,7 +1191,7 @@ function TabPill({ active, onClick, children }) {
       onClick={onClick}
       className={clsx(
         'px-5 py-1.5 text-sm font-semibold',
-        active ? 'bg-[#f5c32b] text-slate-950' : 'text-slate-700 hover:bg-slate-50',
+        active ? 'bg-[#ff7f2a] text-slate-950' : 'text-slate-700 hover:bg-slate-50',
       )}
     >
       {children}
@@ -1135,7 +1206,7 @@ function StatusCell({ status, onPayNow }) {
         <button
           type="button"
           onClick={onPayNow}
-          className="text-xs border border-[#159fd3] text-[#159fd3] hover:bg-[#f5c32b] hover:text-white rounded px-3 py-1"
+          className="text-xs border border-[#ff7f2a] text-[#ff7f2a] hover:bg-[#ff7f2a] hover:text-white rounded px-3 py-1"
         >
           Pay Now
         </button>
@@ -1190,7 +1261,7 @@ function PromoCarousel() {
           <button
             key={i}
             onClick={() => setIdx(i)}
-            className={clsx('w-2 h-2 rounded-full', i === idx ? 'bg-[#f5c32b]' : 'bg-slate-300')}
+            className={clsx('w-2 h-2 rounded-full', i === idx ? 'bg-[#ff7f2a]' : 'bg-slate-300')}
           />
         ))}
       </div>
@@ -1225,5 +1296,4 @@ function addDays(dateStr, days) {
 function isValidDate(value) {
   return value instanceof Date && !Number.isNaN(value.getTime());
 }
-
 
