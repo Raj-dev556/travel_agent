@@ -371,7 +371,7 @@ export default function HotelSearch() {
   }
 
   return (
-    <div>
+       <div className="space-y-6 p-4 md:p-6">
       <div className="hotel-hero relative">
         <div className="max-w-screen-xl mx-auto px-4 pt-14 pb-14 relative">
           <h1 className="text-white text-3xl md:text-[34px] font-semibold tracking-tight text-center">

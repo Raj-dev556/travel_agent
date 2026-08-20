@@ -1197,9 +1197,10 @@ export default function FlightResults() {
     : 'xl:grid-cols-[280px_minmax(780px,1fr)]';
 
   return (
-    <div className="min-h-[calc(100vh-3.5rem)] bg-[#dfdfdf] pb-14">
+    // <div className="min-h-[calc(100vh-3.5rem)] bg-[#dfdfdf] pb-14">
+    <div className="space-y-6 p-4 md:p-6">
       <header className="sticky top-14 z-40 border-b border-black bg-[#222] text-white">
-        <div className="mx-auto grid max-w-screen-2xl grid-cols-2 gap-[1px] bg-black px-2 py-1 md:grid-cols-6">
+        <div className=" grid max-w-screen-2xl grid-cols-2 gap-[1px] bg-black px-2 py-1 md:grid-cols-6">
           <TopCell label={isMultiCity ? 'Leg From' : 'From'} value={activeFrom} sub="" />
           <TopCell label={isMultiCity ? 'Leg To' : 'To'} value={activeTo} sub="" />
           <TopCell label="Departure Date" value={fmtDate(activeDate)} sub="" />
