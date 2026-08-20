@@ -231,6 +231,7 @@ function FooterCol({ title, items }) {
 
 function VisaDropdown() {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
   const ref = useRef(null);
 
   useEffect(() => {
@@ -245,7 +246,10 @@ function VisaDropdown() {
     <div ref={ref} className="relative">
       <button
         type="button"
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={() => {
+          setOpen(false);
+          navigate('/visa');
+        }}
         className={clsx(
           'relative inline-flex items-center gap-1 rounded-full px-4 py-2 text-[12px] font-bold tracking-wide transition hover:bg-white hover:text-[#f58a1f]',
           open ? 'bg-white text-[#f58a1f] shadow-sm' : 'text-slate-700',
@@ -261,7 +265,10 @@ function VisaDropdown() {
             <button
               key={opt.label}
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                setOpen(false);
+                navigate('/visa');
+              }}
               className="w-full text-left px-5 py-3 text-sm text-slate-700 hover:text-[#f58a1f] hover:bg-slate-50"
             >
               {opt.label}

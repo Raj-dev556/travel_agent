@@ -1294,11 +1294,11 @@ export default function FlightResults() {
                       <AirportField label="Where To ?" value={leg.to} onChange={(v) => updateModifyLeg(idx, { to: v })} side="to" placeholder="Where To ?" />
                     </div>
 
-                    <div className="bg-white rounded-lg shadow-sm flex items-stretch min-w-[170px] flex-1">
+                    <div className="bg-white rounded-lg shadow-sm flex items-stretch min-w-[190px] flex-1">
                       <DateField label="Departure" value={leg.date} onChange={(v) => updateModifyLeg(idx, { date: v })} icon />
                     </div>
 
-                    <div className="min-w-[170px] flex-1" />
+                    <div className="min-w-[190px] flex-1" />
 
                     {idx === (modify.legs || []).length - 1 && (modify.legs || []).length < 4 ? (
                       <button type="button" onClick={addModifyLeg} className="border border-white/70 text-white font-semibold tracking-wide rounded-lg px-6 hover:bg-white/10">
@@ -1501,7 +1501,7 @@ export default function FlightResults() {
 
                 <FilterBlock title="Flight Number">
                   <div className="mb-1 flex justify-end">
-                    <button type="button" onClick={() => setFlightNumberQuery('')} className="text-[10px] font-semibold text-orange-600 hover:underline">
+                    <button type="button" onClick={() => setFlightNumberQuery('')} className="text-[10px] font-semibold text-slate-700 hover:text-slate-950 hover:underline">
                       CLEAR
                     </button>
                   </div>
@@ -1515,7 +1515,7 @@ export default function FlightResults() {
 
                 <FilterBlock title="Airlines">
                   <div className="mb-1 flex justify-end">
-                    <button type="button" onClick={() => setSelectedAirlines(new Set())} className="text-[10px] font-semibold text-orange-600 hover:underline">
+                    <button type="button" onClick={() => setSelectedAirlines(new Set())} className="text-[10px] font-semibold text-slate-700 hover:text-slate-950 hover:underline">
                       CLEAR
                     </button>
                   </div>
@@ -2148,28 +2148,28 @@ function RoundTripSortRow({ sortBy, onSort }) {
       <button
         type="button"
         onClick={() => onSort('fastest')}
-        className={clsx('text-left hover:text-orange-600', sortBy === 'fastest' ? 'text-orange-600' : 'text-slate-600')}
+        className={clsx('text-left hover:text-slate-800', sortBy === 'fastest' ? 'text-slate-800' : 'text-slate-600')}
       >
         Sort By : Duration
       </button>
       <button
         type="button"
         onClick={() => onSort('earliest')}
-        className={clsx('text-left hover:text-orange-600', sortBy === 'earliest' ? 'text-orange-600' : 'text-slate-600')}
+        className={clsx('text-left hover:text-slate-800', sortBy === 'earliest' ? 'text-slate-800' : 'text-slate-600')}
       >
         Departure
       </button>
       <button
         type="button"
         onClick={() => onSort('arrival')}
-        className={clsx('text-left hover:text-orange-600', sortBy === 'arrival' ? 'text-orange-600' : 'text-slate-600')}
+        className={clsx('text-left hover:text-slate-800', sortBy === 'arrival' ? 'text-slate-800' : 'text-slate-600')}
       >
         Arrival
       </button>
       <button
         type="button"
         onClick={() => onSort('cheapest')}
-        className={clsx('text-left hover:text-orange-600', sortBy === 'cheapest' ? 'text-orange-600' : 'text-slate-600')}
+        className={clsx('text-left hover:text-slate-800', sortBy === 'cheapest' ? 'text-slate-800' : 'text-slate-600')}
       >
         Price
       </button>
@@ -2202,7 +2202,7 @@ function RoundTripFlightCard({
   }, [fares, localSelectedFareId]);
 
   return (
-    <article className="rounded border border-slate-300 bg-white transition hover:border-slate-500">
+    <article className="rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-200/70 transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg hover:shadow-slate-200/80">
       <div className="grid grid-cols-[48%_52%] gap-2 px-2 py-2">
         <div className="min-w-0">
           <div className="grid grid-cols-[120px_1fr_auto_1fr] items-center gap-1.5">
@@ -2224,7 +2224,7 @@ function RoundTripFlightCard({
 
             <div className="min-w-[60px] text-center">
 
-              <div className="text-[9px] font-semibold text-orange-600">{stops ? `${stops} Stop` : 'Non Stop'}</div>
+              <div className="text-[9px] font-semibold text-slate-700">{stops ? `${stops} Stop` : 'Non Stop'}</div>
               <div className="my-1 h-px w-full bg-slate-300" />
               <div className="text-[9px] text-slate-600">{fmtDuration(seg.durationMinutes)}</div>
 
@@ -2249,10 +2249,10 @@ function RoundTripFlightCard({
             </button>
             {dayOffset ? (
               <div className="mt-2 inline-flex items-center gap-2 text-[12px] text-slate-600">
-                <PlaneTakeoff className="h-4 w-4 text-orange-500" /> {dayOffset}
+                <PlaneTakeoff className="h-4 w-4 text-slate-600" /> {dayOffset}
               </div>
             ) : null}
-            {/* <div className="mt-1 text-[12px] font-semibold text-orange-600">Seats left: {seatsLeft}</div> */}
+            {/* <div className="mt-1 text-[12px] font-semibold text-slate-800">Seats left: {seatsLeft}</div> */}
           </div>
         </div>
 
@@ -2269,7 +2269,7 @@ function RoundTripFlightCard({
                 <input
                   type="radio"
                   name={`rt-fare-${fareGroupKey}`}
-                  className="mt-1 accent-orange-500"
+                  className="mt-1 accent-slate-800"
                   checked={selected && selectedFareIdFromColumn === shownFare.id}
                   onChange={() => {
                     onSelect();
@@ -2296,9 +2296,9 @@ function RoundTripFlightCard({
         <div className="mx-2 mb-2 border border-slate-300 bg-white">
           <div className="flex items-center justify-between border-b border-slate-300 px-3 py-2">
             <div className="flex items-center gap-4 text-[11px] font-semibold">
-              <button type="button" onClick={() => setDetailTab('flight')} className={detailTab === 'flight' ? 'text-orange-600' : 'text-slate-600'}>Flight Details</button>
-              <button type="button" onClick={() => setDetailTab('fare')} className={detailTab === 'fare' ? 'text-orange-600' : 'text-slate-600'}>Fare Details</button>
-              <button type="button" onClick={() => setDetailTab('rules')} className={detailTab === 'rules' ? 'text-orange-600' : 'text-slate-600'}>Fare Rules</button>
+              <button type="button" onClick={() => setDetailTab('flight')} className={detailTab === 'flight' ? 'text-slate-800' : 'text-slate-600'}>Flight Details</button>
+              <button type="button" onClick={() => setDetailTab('fare')} className={detailTab === 'fare' ? 'text-slate-800' : 'text-slate-600'}>Fare Details</button>
+              <button type="button" onClick={() => setDetailTab('rules')} className={detailTab === 'rules' ? 'text-slate-800' : 'text-slate-600'}>Fare Rules</button>
             </div>
             <button type="button" onClick={onToggleDetail} className="text-lg leading-none text-slate-500">x</button>
           </div>
@@ -2428,28 +2428,28 @@ function ResultColumn({
           <button
             type="button"
             onClick={() => onSort('fastest')}
-            className={clsx('col-span-3 text-left font-semibold hover:text-orange-600', sortBy === 'fastest' ? 'text-orange-600' : 'text-slate-600')}
+            className={clsx('col-span-3 text-left font-semibold hover:text-slate-800', sortBy === 'fastest' ? 'text-slate-800' : 'text-slate-600')}
           >
             Sort By : Duration
           </button>
           <button
             type="button"
             onClick={() => onSort('earliest')}
-            className={clsx('col-span-2 text-left font-semibold hover:text-orange-600', sortBy === 'earliest' ? 'text-orange-600' : 'text-slate-600')}
+            className={clsx('col-span-2 text-left font-semibold hover:text-slate-800', sortBy === 'earliest' ? 'text-slate-800' : 'text-slate-600')}
           >
             Departure
           </button>
           <button
             type="button"
             onClick={() => onSort('arrival')}
-            className={clsx('col-span-2 text-left font-semibold hover:text-orange-600', sortBy === 'arrival' ? 'text-orange-600' : 'text-slate-600')}
+            className={clsx('col-span-2 text-left font-semibold hover:text-slate-800', sortBy === 'arrival' ? 'text-slate-800' : 'text-slate-600')}
           >
             Arrival
           </button>
           <button
             type="button"
             onClick={() => onSort('cheapest')}
-            className={clsx('col-span-2 text-left font-semibold hover:text-orange-600', sortBy === 'cheapest' ? 'text-orange-600' : 'text-slate-600')}
+            className={clsx('col-span-2 text-left font-semibold hover:text-slate-800', sortBy === 'cheapest' ? 'text-slate-800' : 'text-slate-600')}
           >
             Price
           </button>
@@ -2459,28 +2459,28 @@ function ResultColumn({
           <button
             type="button"
             onClick={() => onSort('fastest')}
-            className={clsx('text-left hover:text-orange-600', sortBy === 'fastest' ? 'text-orange-600' : 'text-slate-600')}
+            className={clsx('text-left hover:text-slate-800', sortBy === 'fastest' ? 'text-slate-800' : 'text-slate-600')}
           >
             Sort By : Duration
           </button>
           <button
             type="button"
             onClick={() => onSort('earliest')}
-            className={clsx('text-left hover:text-orange-600', sortBy === 'earliest' ? 'text-orange-600' : 'text-slate-600')}
+            className={clsx('text-left hover:text-slate-800', sortBy === 'earliest' ? 'text-slate-800' : 'text-slate-600')}
           >
             Departure
           </button>
           <button
             type="button"
             onClick={() => onSort('arrival')}
-            className={clsx('text-left hover:text-orange-600', sortBy === 'arrival' ? 'text-orange-600' : 'text-slate-600')}
+            className={clsx('text-left hover:text-slate-800', sortBy === 'arrival' ? 'text-slate-800' : 'text-slate-600')}
           >
             Arrival
           </button>
           <button
             type="button"
             onClick={() => onSort('cheapest')}
-            className={clsx('text-left hover:text-orange-600', sortBy === 'cheapest' ? 'text-orange-600' : 'text-slate-600')}
+            className={clsx('text-left hover:text-slate-800', sortBy === 'cheapest' ? 'text-slate-800' : 'text-slate-600')}
           >
             Price
           </button>
@@ -2540,7 +2540,7 @@ function FareSummaryChips({ flights, sortBy, onSort = () => { } }) {
           sortBy === 'cheapest' ? 'bg-[#f7f7f7]' : 'bg-[#f1f1f1] hover:bg-[#ececec]',
         )}
       >
-        <div className="flex items-center gap-1 text-[14px] font-semibold text-slate-700"><IndianRupee className="h-4 w-4 text-orange-500" /> Cheapest</div>
+        <div className="flex items-center gap-1 text-[14px] font-semibold text-slate-700"><IndianRupee className="h-4 w-4 text-slate-600" /> Cheapest</div>
         <div className="text-[13px] text-slate-600">{fmtINR(cheapest.totalPriceINR)}   Duration: {fmtDuration(cheapest.segments?.[0]?.durationMinutes)}</div>
       </button>
       <button
@@ -2595,11 +2595,11 @@ function OneWayDateBar({ baseDate, selectedIdx, onSelect }) {
               onClick={() => onSelect(i)}
               className={clsx(
                 'border-r border-slate-300 px-1.5 py-1 text-left text-[12px] last:border-r-0',
-                active ? 'bg-orange-50 text-orange-600' : 'bg-white text-slate-600 hover:bg-slate-50',
+                active ? 'bg-orange-50 text-slate-800' : 'bg-white text-slate-600 hover:bg-slate-50',
               )}
             >
               <div className="font-semibold">{label.dow}, {label.short}</div>
-              <div className={clsx('font-bold', active ? 'text-orange-600' : 'text-slate-700')}>Fetch Fare</div>
+              <div className={clsx('font-bold', active ? 'text-slate-800' : 'text-slate-700')}>Fetch Fare</div>
             </button>
           );
         })}
@@ -2684,8 +2684,8 @@ function CompareFarePanel({ flight }) {
                   <div className="font-bold text-slate-700">{seg.cabinBaggage || '7 Kg'}</div>
                 </div>
               </div>
-              <div className="border-b border-slate-200 px-3 py-3 text-center text-[11px] font-semibold text-slate-700">Refundable subject to cancellation <span className="text-orange-600">See More</span></div>
-              <div className="border-b border-slate-200 px-3 py-3 text-center text-[11px] font-semibold text-slate-700">INR 1,100.00 + INR 100.00 | + Difference <span className="text-orange-600">See More</span></div>
+              <div className="border-b border-slate-200 px-3 py-3 text-center text-[11px] font-semibold text-slate-700">Refundable subject to cancellation <span className="text-slate-800">See More</span></div>
+              <div className="border-b border-slate-200 px-3 py-3 text-center text-[11px] font-semibold text-slate-700">INR 1,100.00 + INR 100.00 | + Difference <span className="text-slate-800">See More</span></div>
               <div className="border-b border-slate-200 px-3 py-3 text-center text-[11px] font-semibold text-slate-700">Paid Seat</div>
               <div className="px-3 py-3 text-center">
                 <div className="mb-1.5 text-[12px] font-bold text-slate-700">Chargeable</div>
@@ -2740,21 +2740,21 @@ function FlightCard({
 
   if (oneWayMode) {
     return (
-      <article className="rounded-md border border-[#e4e4e4] bg-white">
+      <article className="rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-200/70 transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg hover:shadow-slate-200/80">
         <div
           role="button"
           tabIndex={0}
           onClick={onSelect}
           onKeyDown={(e) => e.key === 'Enter' && onSelect()}
-          className="grid grid-cols-12 gap-2 px-4 py-4"
+          className="grid grid-cols-1 gap-5 px-5 py-5 lg:grid-cols-12"
         >
-          <div className="col-span-7">
+          <div className="lg:col-span-7">
             <div className="flex">
-              <div className="w-[170px]">
+              <div className="w-[190px]">
                 <div className="flex gap-2">
                   <div
                     className={clsx(
-                      'mt-1 h-4 w-4 rounded-sm',
+                      'mt-1 h-10 w-10 rounded-xl shadow-sm',
                       (seg.airline || '').toLowerCase().includes('indigo')
                         ? 'bg-[#2f5fa7]'
                         : (seg.airline || '').toLowerCase().includes('spice')
@@ -2765,49 +2765,49 @@ function FlightCard({
                     )}
                   />
                   <div>
-                    <div className="text-[16px] font-semibold leading-none text-[#444]">{seg.airline || 'Airline'}</div>
-                    <div className="mt-1 text-[13px] text-[#777]">{seg.flightNumber || '-'}</div>
+                    <div className="text-[18px] font-semibold leading-tight text-slate-800">{seg.airline || 'Airline'}</div>
+                    <div className="mt-1 text-sm text-slate-500">{seg.flightNumber || '-'}</div>
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-1 items-center justify-between px-5">
+              <div className="flex flex-1 items-center justify-between rounded-2xl bg-slate-50 px-5 py-4">
                 <div>
-                  <div className="text-[14px] font-semibold text-[#888]">{seg.from || '---'}</div>
-                  <div className="text-[18px] font-bold leading-none text-[#444]">{fmtClock(seg.departureTime)}</div>
-                  <div className="mt-1 text-[14px] text-[#777]">{fmtDate(seg.departureTime).replace(',', '')}</div>
+                  <div className="text-sm font-semibold uppercase tracking-wide text-slate-500">{seg.from || '---'}</div>
+                  <div className="text-xl font-semibold leading-none text-slate-900">{fmtClock(seg.departureTime)}</div>
+                  <div className="mt-1 text-sm text-slate-500">{fmtDate(seg.departureTime).replace(',', '')}</div>
                 </div>
 
                 <div className="flex flex-col items-center px-3">
-                  <div className="text-[13px] text-[#888]">{stops ? `${stops} Stop` : 'Non-Stop'}</div>
+                  <div className="text-sm font-semibold text-slate-600">{stops ? `${stops} Stop` : 'Non-Stop'}</div>
                   <div className="relative my-1 flex items-center">
-                    <div className="h-[2px] w-[75px] bg-[#d7d7d7]" />
-                    <span className="absolute right-[-5px] text-[#aaa]">{'->'}</span>
+                    <div className="h-[2px] w-[96px] bg-slate-300" />
+                    <span className="absolute right-[-5px] text-slate-400">{'->'}</span>
                   </div>
-                  <div className="text-[16px] text-[#555]">{fmtDuration(seg.durationMinutes)}</div>
+                  <div className="text-sm text-slate-500">{fmtDuration(seg.durationMinutes)}</div>
                 </div>
 
                 <div>
-                  <div className="text-[14px] font-semibold text-[#888]">{seg.to || '---'}</div>
-                  <div className="text-[18px] font-bold leading-none text-[#444]">{fmtClock(seg.arrivalTime)}</div>
-                  <div className="mt-1 text-[14px] text-[#777]">{fmtDate(seg.arrivalTime).replace(',', '')}</div>
+                  <div className="text-sm font-semibold uppercase tracking-wide text-slate-500">{seg.to || '---'}</div>
+                  <div className="text-xl font-semibold leading-none text-slate-900">{fmtClock(seg.arrivalTime)}</div>
+                  <div className="mt-1 text-sm text-slate-500">{fmtDate(seg.arrivalTime).replace(',', '')}</div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-5 flex items-center gap-5">
+            <div className="mt-5 flex flex-wrap items-center gap-4">
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   onToggleDetail();
                 }}
-                className="rounded border border-[#dddddd] bg-[#f7f7f7] px-4 py-2 text-[14px] font-semibold text-[#ff6d2d] shadow-sm"
+                className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:border-slate-400 hover:bg-slate-50"
               >
                 View Details {expanded ? '-' : '+'}
               </button>
 
-              {dayOffset ? <div className="text-[14px] text-[#666]"> {dayOffset}</div> : null}
+              {dayOffset ? <div className="text-sm text-slate-600"> {dayOffset}</div> : null}
 
               {/* <div className={clsx('text-[14px] font-semibold', seatsLeft <= 3 ? 'text-red-500' : 'text-[#ff6d2d]')}>
                 Seats left: {seatsLeft}
@@ -2815,23 +2815,23 @@ function FlightCard({
             </div>
           </div>
 
-          <div className="col-span-5 flex justify-between border-l border-[#ededed] pl-5">
-            <div className="flex-1 space-y-2">
+          <div className="lg:col-span-5 flex flex-col gap-4 border-t border-slate-100 pt-5 lg:flex-row lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
+            <div className="flex-1 space-y-3">
               {visibleFares.map((fare, idx) => {
                 const active = localSelectedFareId === fare.id;
                 const labelClass =
                   fare.name.toLowerCase().includes('sme')
-                    ? 'bg-[#ffe3d2] text-[#ff6d2d]'
+                    ? 'bg-slate-100 text-slate-700'
                     : fare.name.toLowerCase().includes('flex')
-                      ? 'bg-[#f7efad] text-[#777]'
-                      : 'bg-[#f6df7a] text-[#444]';
+                      ? 'bg-slate-100 text-slate-700'
+                      : 'bg-slate-100 text-slate-700';
 
                 return (
-                  <div key={fare.id} className={idx !== visibleFares.length - 1 ? 'border-b border-[#ededed] pb-2' : ''}>
-                    <label className="flex cursor-pointer items-start gap-3" onClick={(e) => e.stopPropagation()}>
+                  <div key={fare.id} className={idx !== visibleFares.length - 1 ? 'border-b border-slate-100 pb-3' : ''}>
+                    <label className="flex cursor-pointer items-start gap-3 rounded-xl px-2 py-1.5 hover:bg-slate-50" onClick={(e) => e.stopPropagation()}>
                       <input
                         type="radio"
-                        className="mt-1 accent-orange-500"
+                        className="mt-1 accent-slate-800"
                         name={`fare-${flight.id}`}
                         checked={active}
                         onChange={() => {
@@ -2842,15 +2842,15 @@ function FlightCard({
                       />
 
                       <span>
-                        <span className="block text-[11px] text-[#9a9a9a]">713208</span>
+                        <span className="block text-xs text-slate-400">713208</span>
                         <span className="flex items-center gap-1">
-                          <span className="text-[18px] font-bold leading-none text-[#444]">{fmtINR(fare.amount)}</span>
-                          <span className="text-[13px] text-[#2f5fa7]">*</span>
+                          <span className="text-xl font-semibold leading-none text-slate-900">{fmtINR(fare.amount)}</span>
+                          <span className="text-xs text-slate-500">*</span>
                         </span>
 
-                        <span className="mt-1 flex items-center gap-2 text-[14px]">
+                        <span className="mt-1 flex flex-wrap items-center gap-2 text-sm">
                           <span className={clsx('px-1 text-[12px] font-semibold', labelClass)}>{fare.name}</span>
-                          <span className="text-[#777]">Economy, {flight.refundable ? 'Refundable' : 'Non-refundable'}</span>
+                          <span className="text-slate-500">Economy, {flight.refundable ? 'Refundable' : 'Non-refundable'}</span>
                         </span>
                       </span>
                     </label>
@@ -2871,12 +2871,12 @@ function FlightCard({
               )}
             </div>
 
-            <div className="ml-5 flex w-[120px] flex-col gap-3">
+            <div className="flex w-full flex-col gap-3 lg:ml-5 lg:w-[128px]">
               <button
                 type="button"
                 onClick={handleBookClick}
                 disabled={isBooking}
-                className="rounded bg-[#ff7b39] py-3 text-[16px] font-bold text-white hover:bg-[#f06d2d] disabled:cursor-not-allowed disabled:opacity-70"
+                className="rounded-xl bg-slate-800 py-3 text-base font-bold text-white shadow-sm hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {isBooking ? (
                   <span className="inline-flex items-center gap-2">
@@ -2895,7 +2895,7 @@ function FlightCard({
                     e.stopPropagation();
                     onCompare();
                   }}
-                  className="rounded border border-[#ff7b39] bg-white py-3 text-[15px] text-[#555]"
+                  className="rounded-xl border border-slate-300 bg-white py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
                 >
                   Compare {compared ? '^' : 'v'}
                 </button>
@@ -2908,9 +2908,9 @@ function FlightCard({
           <div className="mx-2 mb-2 border border-slate-300 bg-white">
             <div className="flex items-center justify-between border-b border-slate-300 px-3 py-2">
               <div className="flex items-center gap-4 text-[11px] font-semibold">
-                <button type="button" onClick={() => setDetailTab('flight')} className={detailTab === 'flight' ? 'text-orange-600' : 'text-slate-600'}>Flight Details</button>
-                <button type="button" onClick={() => setDetailTab('fare')} className={detailTab === 'fare' ? 'text-orange-600' : 'text-slate-600'}>Fare Details</button>
-                <button type="button" onClick={() => setDetailTab('rules')} className={detailTab === 'rules' ? 'text-orange-600' : 'text-slate-600'}>Fare Rules</button>
+                <button type="button" onClick={() => setDetailTab('flight')} className={detailTab === 'flight' ? 'text-slate-800' : 'text-slate-600'}>Flight Details</button>
+                <button type="button" onClick={() => setDetailTab('fare')} className={detailTab === 'fare' ? 'text-slate-800' : 'text-slate-600'}>Fare Details</button>
+                <button type="button" onClick={() => setDetailTab('rules')} className={detailTab === 'rules' ? 'text-slate-800' : 'text-slate-600'}>Fare Rules</button>
               </div>
               <button type="button" onClick={onToggleDetail} className="text-lg leading-none text-slate-500">x</button>
             </div>
@@ -2963,7 +2963,7 @@ function FlightCard({
   }
 
   return (
-    <article className="rounded border border-slate-300 bg-white transition hover:border-slate-500">
+    <article className="rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-200/70 transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg hover:shadow-slate-200/80">
       <div
         role={oneWayMode ? 'button' : undefined}
         tabIndex={oneWayMode ? 0 : -1}
@@ -2991,7 +2991,7 @@ function FlightCard({
             <div className="min-w-[88px] text-center">
               <div className="text-[9px] text-slate-600">{fmtDuration(seg.durationMinutes)}</div>
               <div className="my-1 h-px w-full bg-slate-300" />
-              <div className="text-[9px] font-semibold text-orange-600">{stops ? `${stops} Stop` : 'Non Stop'}</div>
+              <div className="text-[9px] font-semibold text-slate-700">{stops ? `${stops} Stop` : 'Non Stop'}</div>
             </div>
 
             <div className="text-right">
@@ -3009,11 +3009,11 @@ function FlightCard({
                     e.stopPropagation();
                     onToggleDetail();
                   }}
-                  className="font-semibold text-orange-600 hover:underline"
+                  className="font-semibold text-slate-700 hover:text-slate-950 hover:underline"
                 >
                   View Details {expanded ? '-' : '+'}
                 </button>
-                {/* <span className="text-orange-600">Seats left: {seatsLeft}</span> */}
+                {/* <span className="text-slate-800">Seats left: {seatsLeft}</span> */}
               </div>
 
               <div className="mt-1.5 flex items-center justify-between border-t border-slate-200 pt-1.5 text-[10px] text-slate-600">
@@ -3039,10 +3039,10 @@ function FlightCard({
               </button>
               {dayOffset ? (
                 <div className="mt-2 inline-flex items-center gap-2 text-[13px] text-slate-600">
-                  <PlaneTakeoff className="h-4 w-4 text-orange-500" /> {dayOffset}
+                  <PlaneTakeoff className="h-4 w-4 text-slate-600" /> {dayOffset}
                 </div>
               ) : null}
-              {/* <div className="mt-1 text-[14px] font-semibold text-orange-600">Seats left: {seatsLeft}</div> */}
+              {/* <div className="mt-1 text-[14px] font-semibold text-slate-800">Seats left: {seatsLeft}</div> */}
             </div>
           )}
         </div>
@@ -3058,7 +3058,7 @@ function FlightCard({
                       <label className="grid cursor-pointer grid-cols-[14px_1fr] items-start gap-1" onClick={(e) => e.stopPropagation()}>
                         <input
                           type="radio"
-                          className="mt-1 accent-orange-500"
+                          className="mt-1 accent-slate-800"
                           name={`rt-fare-${fareGroupKey}`}
                           checked={isActive}
                           onChange={() => {
@@ -3102,7 +3102,7 @@ function FlightCard({
                 type="button"
                 onClick={handleBookClick}
                 disabled={isBooking}
-                className="rounded bg-orange-500 px-2 py-1.5 text-[12px] font-bold text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-70"
+                className="rounded-xl bg-slate-800 px-3 py-2 text-xs font-bold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {isBooking ? (
                   <span className="inline-flex items-center gap-1">
@@ -3121,7 +3121,7 @@ function FlightCard({
                 }}
                 className={clsx(
                   'rounded border px-2 py-1 text-[10px] font-semibold',
-                  compared ? 'border-slate-700 bg-slate-700 text-white' : 'border-orange-400 text-slate-700 hover:bg-orange-50',
+                  compared ? 'border-slate-700 bg-slate-700 text-white' : 'border-slate-300 text-slate-700 hover:bg-slate-50',
                 )}
               >
                 Compare {compared ? '^' : 'v'}
@@ -3142,7 +3142,7 @@ function FlightCard({
                   <input
                     type="radio"
                     name={`rt-fare-${fareGroupKey}`}
-                    className="mt-1 accent-orange-500"
+                    className="mt-1 accent-slate-800"
                     checked={selected && selectedFareIdFromColumn === shownFare.id}
                     onChange={() => {
                       onSelect();
@@ -3170,9 +3170,9 @@ function FlightCard({
         <div className="mx-2 mb-2 border border-slate-300 bg-white">
           <div className="flex items-center justify-between border-b border-slate-300 px-3 py-2">
             <div className="flex items-center gap-4 text-[11px] font-semibold">
-              <button type="button" onClick={() => setDetailTab('flight')} className={detailTab === 'flight' ? 'text-orange-600' : 'text-slate-600'}>Flight Details</button>
-              <button type="button" onClick={() => setDetailTab('fare')} className={detailTab === 'fare' ? 'text-orange-600' : 'text-slate-600'}>Fare Details</button>
-              <button type="button" onClick={() => setDetailTab('rules')} className={detailTab === 'rules' ? 'text-orange-600' : 'text-slate-600'}>Fare Rules</button>
+              <button type="button" onClick={() => setDetailTab('flight')} className={detailTab === 'flight' ? 'text-slate-800' : 'text-slate-600'}>Flight Details</button>
+              <button type="button" onClick={() => setDetailTab('fare')} className={detailTab === 'fare' ? 'text-slate-800' : 'text-slate-600'}>Fare Details</button>
+              <button type="button" onClick={() => setDetailTab('rules')} className={detailTab === 'rules' ? 'text-slate-800' : 'text-slate-600'}>Fare Rules</button>
             </div>
             <button type="button" onClick={onToggleDetail} className="text-lg leading-none text-slate-500">x</button>
           </div>
@@ -3231,7 +3231,7 @@ function FareRulesPanel({ seg }) {
         <div className="inline-block border-b-2 border-orange-500 bg-white px-2 py-1 text-[22px] font-semibold text-slate-700">
           {seg.from}-{seg.to}
         </div>
-        <button type="button" className="rounded bg-white px-3 py-1.5 text-[14px] font-semibold text-orange-600 shadow-sm">
+        <button type="button" className="rounded bg-white px-3 py-1.5 text-[14px] font-semibold text-slate-800 shadow-sm">
           Detailed Rules
         </button>
       </div>
@@ -3245,7 +3245,7 @@ function FareRulesPanel({ seg }) {
               <div className="font-semibold text-slate-700">Time Frame</div>
               <div className="text-[9px] text-slate-500">(From First Schedule Flight Departure)</div>
             </th>
-            <th className="relative border border-slate-300 bg-white px-2 py-1.5 text-center text-orange-500">
+            <th className="relative border border-slate-300 bg-white px-2 py-1.5 text-center text-slate-600">
               <div className="font-semibold">Cancellation Fee</div>
               <span className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-orange-500" />
             </th>
