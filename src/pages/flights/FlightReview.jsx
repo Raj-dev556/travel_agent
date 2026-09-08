@@ -183,9 +183,9 @@ export default function FlightReview() {
             <ChevronLeft className="h-4 w-4" /> Back
           </button>
           <div className="flex gap-3">
-            <button type="button" className="inline-flex items-center rounded bg-[#ff7f2a] px-7 py-3 text-[17px] font-extrabold text-white">
+            {/* <button type="button" className="inline-flex items-center rounded bg-[#ff7f2a] px-7 py-3 text-[17px] font-extrabold text-white">
               <Hourglass className="mr-1 h-4 w-4" /> Block
-            </button>
+            </button> */}
             <button
               type="button"
               onClick={() => {

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
@@ -16,6 +16,7 @@ import {
   saveHotelBookingSnapshot,
 } from './hotelTripjackHelpers';
 import { saveHotelRecentBooking } from './hotelUserHistory';
+import { useAuthStore } from '../../store/auth';
 
 const TITLES = ['Mr', 'Mrs', 'Ms', 'Mstr', 'Miss'];
 
@@ -27,6 +28,7 @@ export default function HotelBook() {
   const { id } = useParams();
   const [params] = useSearchParams();
   const navigate = useNavigate();
+  const authenticatedUser = useAuthStore((state) => state.user);
 
   const optionId = params.get('optionId') || '';
   const selectedAmount = params.get('amount') || '';
@@ -36,6 +38,7 @@ export default function HotelBook() {
   const checkin = params.get('checkin') || new Date().toISOString().slice(0, 10);
   const checkout = params.get('checkout') || addDays(checkin, 1);
   const rooms = useMemo(() => safeParseRooms(params.get('rooms')), [params]);
+  const routeImages = useMemo(() => safeParseImageList(params.get('images')), [params]);
 
   const [paxByRoom, setPaxByRoom] = useState(() =>
     rooms.map((r) => [
@@ -43,17 +46,45 @@ export default function HotelBook() {
       ...Array(r.children || 0).fill(0).map(() => newPax('CHILD')),
     ]),
   );
-  const [contact, setContact] = useState({ code: 'India (+91)', phone: '', email: '' });
+  const [contact, setContact] = useState({ code: 'India (+91)', phone: '', email: '', employeeId: '' });
   const [special, setSpecial] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [cashAmount, setCashAmount] = useState('');
   const [fareExpanded, setFareExpanded] = useState({ base: false, taxes: false, total: false });
-  const [panType, setPanType] = useState('personal');
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [failedImageSources, setFailedImageSources] = useState(() => new Set());
   const [useGuardianPan, setUseGuardianPan] = useState(false);
   const [personalPans, setPersonalPans] = useState([
     { name: '', number: '', verified: false, error: '' },
   ]);
-  const [corporatePan, setCorporatePan] = useState({ number: '', verified: false, error: '' });
+
+  const guestFromAuth = useMemo(() => getAuthenticatedGuest(authenticatedUser), [authenticatedUser]);
+
+  useEffect(() => {
+    if (!guestFromAuth.hasData) return;
+
+    setPaxByRoom((current) => current.map((room, roomIndex) => (
+      roomIndex === 0
+        ? room.map((pax, paxIndex) => (
+          paxIndex === 0
+            ? {
+              ...pax,
+              ti: guestFromAuth.title || pax.ti,
+              fN: pax.fN || guestFromAuth.firstName,
+              lN: pax.lN || guestFromAuth.lastName,
+            }
+            : pax
+        ))
+        : room
+    )));
+
+    setContact((current) => ({
+      ...current,
+      phone: current.phone || guestFromAuth.phone,
+      email: current.email || guestFromAuth.email,
+      employeeId: current.employeeId || guestFromAuth.employeeId,
+    }));
+  }, [guestFromAuth]);
 
   const selectedOptionId = optionId;
   const selectedReviewHash = params.get('reviewHash') || '';
@@ -131,74 +162,71 @@ export default function HotelBook() {
   const checkInOutTimes = extractCheckInOutTimes(propertyPolicies);
   const importantPolicies = collectPolicySections(propertyPolicies)
     .filter((section) => !['Check-in', 'Check-out'].includes(section.title));
-  const personalPansVerified = personalPans.length > 0 && personalPans.every((pan) => pan.verified);
-  const activePanVerified = panType === 'personal' ? personalPansVerified : corporatePan.verified;
-
   const gallery = [
+    ...routeImages,
     ...(staticContent.images || []).map(imageUrl).filter(Boolean),
-    ...(selectedRoom?.images || []),
-  ];
-  const heroImage = gallery[0] || '';
-
-  const formValid =
-    selectedRoom &&
-    selectedOptionId &&
-    selectedReviewHash &&
-    review?.bookingId &&
-    agreed &&
-    paxByRoom.every((room) => room.every((p) => p.fN.trim() && p.lN.trim() && p.ti)) &&
-    /\S+@\S+/.test(contact.email) &&
-    contact.phone.trim().length >= 7;
-
-  const panRequired = Boolean(selectedRoom?.panRequired);
-  const bookingFormValid = formValid && (!panRequired || activePanVerified);
+    ...(selectedRoom?.images || []).map(imageUrl).filter(Boolean),
+  ].filter((src, index, all) => all.indexOf(src) === index);
+  const availableGallery = gallery.filter((src) => !failedImageSources.has(src));
+  const heroImage = availableGallery[activeImageIndex] || availableGallery[0] || '';
 
   const handleProceed = () => {
-    const bookingId = review?.bookingId;
-    if (!bookingId) return;
+    const bookingId = review?.bookingId || params.get('bookingId') || `HOTEL-${String(id || 'BOOKING').trim()}-${Date.now()}`;
 
     const leadPax = paxByRoom[0]?.[0];
     const reviewFare = extractPricingFromSource(review?.option) || extractPricingFromSource(review) || fare;
-
-    saveHotelBookingSnapshot(bookingId, {
+    const guestDetails = buildHotelGuestDetails(paxByRoom, contact, special);
+    const bookingPayload = {
       bookingId,
-      hotelName,
-      address,
-      city,
-      postalCode,
-      starCount,
-      checkin,
-      checkout,
-      nights,
-      totalRooms,
-      totalGuests,
-      roomAdults,
-      roomChildren,
-      selectedRoom: {
-        name: selectedRoom?.name || '',
-        boardBasis: selectedRoom?.boardBasis || selectedRoom?.mealBasis || '',
-        mealBasis: selectedRoom?.mealBasis || '',
-        refundable: Boolean(selectedRoom?.refundable),
-      },
-      fare: reviewFare,
-      cancellationPenalties,
-      leadGuestName: leadPax ? `${leadPax.ti} ${leadPax.fN} ${leadPax.lN}`.trim() : '',
-      contact,
-    });
+      tjHotelId: String(id || '').trim(),
+      optionId: selectedOptionId,
+      reviewHash: selectedReviewHash,
+      ...guestDetails,
+    };
 
-    saveHotelRecentBooking({
-      bookingId,
-      hotelName,
-      city,
-      country: addressData.countryName || 'IN',
-      checkin,
-      checkout,
-      amount: reviewFare?.totalPayable || selectedRoom?.totalRateINR || selectedAmount,
-      status: 'On Hold',
-      review,
-    });
+    try {
+      saveHotelBookingSnapshot(bookingId, {
+        bookingId,
+        hotelName,
+        address,
+        city,
+        postalCode,
+        starCount,
+        checkin,
+        checkout,
+        nights,
+        totalRooms,
+        totalGuests,
+        roomAdults,
+        roomChildren,
+        selectedRoom: {
+          name: selectedRoom?.name || '',
+          boardBasis: selectedRoom?.boardBasis || selectedRoom?.mealBasis || '',
+          mealBasis: selectedRoom?.mealBasis || '',
+          refundable: Boolean(selectedRoom?.refundable),
+        },
+        fare: reviewFare,
+        cancellationPenalties,
+        leadGuestName: leadPax ? `${leadPax.ti} ${leadPax.fN} ${leadPax.lN}`.trim() : '',
+        contact: guestDetails.contact,
+        guestDetails,
+        bookingPayload,
+      });
 
-    navigate(`/hotels/confirm?bookingId=${encodeURIComponent(bookingId)}`);
+      saveHotelRecentBooking({
+        bookingId,
+        hotelName,
+        city,
+        country: addressData.countryName || 'IN',
+        checkin,
+        checkout,
+        amount: reviewFare?.totalPayable || selectedRoom?.totalRateINR || selectedAmount,
+        status: 'On Hold',
+        review,
+      });
+    } finally {
+      navigate(`/hotels/confirm?bookingId=${encodeURIComponent(bookingId)}`);
+    }
   };
 
   const updatePax = (rIdx, pIdx, patch) =>
@@ -218,10 +246,6 @@ export default function HotelBook() {
     setPersonalPans((current) => current.map((pan, panIndex) => (
       panIndex === index ? { ...pan, ...patch, verified: false, error: '' } : pan
     )));
-  };
-
-  const updateCorporatePan = (patch) => {
-    setCorporatePan((current) => ({ ...current, ...patch, verified: false, error: '' }));
   };
 
   const addPersonalPan = () => {
@@ -253,14 +277,6 @@ export default function HotelBook() {
     )));
   };
 
-  const verifyCorporatePan = () => {
-    const formattedNumber = corporatePan.number.trim().toUpperCase();
-    const error = /^[A-Z]{3}C[A-Z][0-9]{4}[A-Z]$/.test(formattedNumber)
-      ? ''
-      : 'Enter a valid Corporate PAN.';
-    setCorporatePan((current) => ({ ...current, number: formattedNumber, verified: !error, error }));
-  };
-
   if (isReviewLoading) return <div className="p-8 text-center text-slate-500">Loading booking review...</div>;
 
   return (
@@ -273,11 +289,39 @@ export default function HotelBook() {
               <div className="grid gap-4 md:grid-cols-[220px_1fr_auto] md:items-start">
                 <div className="h-[140px] overflow-hidden rounded-lg bg-slate-200">
                   {heroImage ? (
-                    <img src={heroImage} alt={hotelName} className="h-full w-full object-cover" />
+                    <img
+                      src={heroImage}
+                      alt={hotelName}
+                      className="h-full w-full object-cover"
+                      onError={() => setFailedImageSources((current) => new Set([...current, heroImage]))}
+                    />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-xs text-slate-500">No image</div>
                   )}
                 </div>
+                {availableGallery.length > 1 && (
+                  <div className="flex gap-2 overflow-x-auto md:col-span-3">
+                    {availableGallery.map((src, index) => (
+                      <button
+                        key={`${src}-${index}`}
+                        type="button"
+                        onClick={() => setActiveImageIndex(index)}
+                        className={clsx(
+                          'h-16 w-20 shrink-0 overflow-hidden rounded border-2',
+                          index === activeImageIndex ? 'border-[#f2711c]' : 'border-transparent',
+                        )}
+                        aria-label={`Show hotel photo ${index + 1}`}
+                      >
+                        <img
+                          src={src}
+                          alt={`${hotelName} thumbnail ${index + 1}`}
+                          className="h-full w-full object-cover"
+                          onError={() => setFailedImageSources((current) => new Set([...current, src]))}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <div>
                   <div className="text-[24px] font-semibold leading-tight text-slate-800">{hotelName}</div>
                   <div className="mt-1 inline-flex items-center gap-0.5">
@@ -370,7 +414,7 @@ export default function HotelBook() {
 
             <section className="rounded-xl border border-slate-200 bg-white p-4">
               <h2 className="text-[24px] font-semibold text-slate-800">Guest Details</h2>
-              <div className="text-[12px] text-slate-500">Only lead guest name is required.</div>
+              <div className="text-[12px] text-slate-500">Lead guest details are pre-filled from your account and can be reviewed or edited.</div>
 
               {paxByRoom.map((room, rIdx) => (
                 <div key={rIdx} className="mt-3 rounded-lg border border-[#dbe3ed] overflow-hidden">
@@ -419,7 +463,7 @@ export default function HotelBook() {
                 </div>
               ))}
               <h2 className="text-[24px] font-semibold text-slate-800">Contact Details</h2>
-              <div className="mt-2 grid gap-2 md:grid-cols-[150px_1fr_1fr]">
+              <div className="mt-2 grid gap-2 md:grid-cols-2 lg:grid-cols-[150px_1fr_1fr_1fr]">
                 <select
                   className="rounded border border-slate-300 px-2 py-2 text-[13px]"
                   value={contact.code}
@@ -441,90 +485,66 @@ export default function HotelBook() {
                   value={contact.email}
                   onChange={(e) => setContact((prev) => ({ ...prev, email: e.target.value }))}
                 />
+            
               </div>
             </section>
 
             <section className="rounded-xl border border-slate-200 bg-white p-4">
               <h2 className="text-[24px] font-semibold text-slate-800">PAN Information</h2>
-              <div className="mt-3 flex items-center gap-8 rounded-lg bg-[#e9f2ff] px-4 py-3">
-                <PanChoice label="Personal PAN" checked={panType === 'personal'} onChange={() => setPanType('personal')} />
-                <PanChoice label="Corporate PAN" checked={panType === 'corporate'} onChange={() => setPanType('corporate')} />
-              </div>
-
-              {panType === 'personal' ? (
-                <div className="mt-4">
-                  <label className="inline-flex items-center gap-2 text-[13px] text-[#f2711c] cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={useGuardianPan}
-                      onChange={(event) => setUseGuardianPan(event.target.checked)}
-                      className="h-4 w-4 rounded border-slate-300"
-                    />
-                    Use Only Guardian PAN
-                  </label>
-                  <div className="mt-3 space-y-3">
-                    {personalPans.map((pan, index) => (
-                      <div key={`personal-pan-${index}`} className="rounded-lg border border-slate-200 p-3">
-                        <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
-                          <PanInput
-                            label={useGuardianPan && index === 0 ? 'Guardian Name' : `Name (Guest ${index + 1})`}
-                            value={pan.name}
-                            placeholder="Name as per PAN"
-                            onChange={(value) => updatePersonalPan(index, { name: value })}
-                          />
-                          <PanInput
-                            label="PAN"
-                            value={pan.number}
-                            placeholder="ABCDE1234F"
-                            maxLength={10}
-                            onChange={(value) => updatePersonalPan(index, { number: value.toUpperCase() })}
-                          />
-                          <div className="flex items-center gap-2">
-                            <PanVerifyButton verified={pan.verified} onClick={() => verifyPersonalPan(index)} />
-                            {personalPans.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={() => removePersonalPan(index)}
-                                className="rounded-md border border-slate-300 px-3 py-2.5 text-[13px] font-semibold text-slate-600 hover:bg-slate-50"
-                              >
-                                Remove
-                              </button>
-                            )}
-                          </div>
+              <div className="mt-4">
+                <label className="inline-flex items-center gap-2 text-[13px] text-[#f2711c] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={useGuardianPan}
+                    onChange={(event) => setUseGuardianPan(event.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300"
+                  />
+                  Use Only Guardian PAN
+                </label>
+                <div className="mt-3 space-y-3">
+                  {personalPans.map((pan, index) => (
+                    <div key={`personal-pan-${index}`} className="rounded-lg border border-slate-200 p-3">
+                      <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
+                        <PanInput
+                          label={useGuardianPan && index === 0 ? 'Guardian Name' : `Name (Guest ${index + 1})`}
+                          value={pan.name}
+                          placeholder="Name as per PAN"
+                          onChange={(value) => updatePersonalPan(index, { name: value })}
+                        />
+                        <PanInput
+                          label="PAN"
+                          value={pan.number}
+                          placeholder="ABCDE1234F"
+                          maxLength={10}
+                          onChange={(value) => updatePersonalPan(index, { number: value.toUpperCase() })}
+                        />
+                        <div className="flex items-center gap-2">
+                          <PanVerifyButton verified={pan.verified} onClick={() => verifyPersonalPan(index)} />
+                          {personalPans.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removePersonalPan(index)}
+                              className="rounded-md border border-slate-300 px-3 py-2.5 text-[13px] font-semibold text-slate-600 hover:bg-slate-50"
+                            >
+                              Remove
+                            </button>
+                          )}
                         </div>
-                        {pan.error && <p className="mt-2 text-xs font-medium text-red-600">{pan.error}</p>}
                       </div>
-                    ))}
-                  </div>
-                  {personalPans.length < totalGuests && (
-                    <button
-                      type="button"
-                      onClick={addPersonalPan}
-                      className="mt-3 rounded-md bg-[#ff7a00] px-4 py-2 text-[13px] font-semibold text-white hover:bg-[#e56a00]"
-                    >
-                      + Add PAN
-                    </button>
-                  )}
+                      {pan.error && <p className="mt-2 text-xs font-medium text-red-600">{pan.error}</p>}
+                    </div>
+                  ))}
                 </div>
-              ) : (
-                <div className="mt-4 rounded-lg border-2 border-slate-200 p-5">
-                  <div className="grid gap-3 md:grid-cols-[390px_auto] md:items-end">
-                    <PanInput
-                      label="Corporate PAN Number"
-                      value={corporatePan.number}
-                      placeholder="ABCDE1234F"
-                      maxLength={10}
-                      onChange={(value) => updateCorporatePan({ number: value.toUpperCase() })}
-                    />
-                    <PanVerifyButton verified={corporatePan.verified} onClick={verifyCorporatePan} />
-                  </div>
-                  {corporatePan.error && <p className="mt-2 text-xs font-medium text-red-600">{corporatePan.error}</p>}
-                  <p className="mt-5 max-w-4xl text-[13px] leading-6 text-slate-600">
-                    By proceeding, you confirm that the PAN/GST details belong to the same legal entity for which this booking is made and that the stay is for official business purposes. GST benefits are subject to eligibility under applicable law and the company is responsible for the accuracy of these details.
-                  </p>
-                  <button type="button" className="mt-1 text-[13px] font-semibold text-[#2f80ed] hover:underline">View Terms &amp; Conditions</button>
-                </div>
-              )}
+                {personalPans.length < totalGuests && (
+                  <button
+                    type="button"
+                    onClick={addPersonalPan}
+                    className="mt-3 rounded-md bg-[#ff7a00] px-4 py-2 text-[13px] font-semibold text-white hover:bg-[#e56a00]"
+                  >
+                    + Add PAN
+                  </button>
+                )}
+              </div>
             </section>
 
 
@@ -631,50 +651,28 @@ export default function HotelBook() {
               </div>
             </section>
 
-            <section className="rounded-2xl border-2 border-slate-200 bg-white p-4">
-              <div className="grid grid-cols-[auto_1fr] items-center gap-4">
-                <div className="whitespace-nowrap">
-                  <div className="text-[20px] font-medium text-slate-800">TJ Cash</div>
-                  <div className="text-[16px] text-slate-700">1 Cash = ₹1</div>
-                </div>
-                <div className="grid grid-cols-[1fr_auto] gap-2">
-                <input
-                  className="min-w-0 rounded-lg border-2 border-slate-200 px-3 py-2 text-[14px] outline-none focus:border-[#ff7a00]"
-                  placeholder="Enter Cash Amount"
-                  value={cashAmount}
-                  onChange={(e) => setCashAmount(e.target.value)}
-                />
-                <button type="button" className="rounded-lg bg-[#f5821f] px-3 py-2 text-[14px] font-semibold text-white hover:bg-[#e56a00]">Redeem</button>
-                </div>
-              </div>
-            </section>
+        
 
             <div className="px-1 text-[13px] leading-5 text-slate-600">
               By proceeding, I confirm that I agree to all <a href="https://static.tripjack.com/hotel/Standard_declaration_TCS.pdf" target="_blank" rel="noreferrer" className="font-semibold text-[#0b65c2] hover:underline">terms &amp; conditions</a> and I will follow all Government Compliance for TCS.
             </div>
 
-            <div className="px-1 text-[13px] text-slate-600">✓ From Wallet/Credit line</div>
-            <button type="button" className="w-full rounded-md bg-[#f5821f] py-2.5 text-[16px] font-semibold text-white hover:bg-[#e56a00]">
+            {/* <div className="px-1 text-[13px] text-slate-600">✓ From Wallet/Credit line</div> */}
+            {/* <button type="button" className="w-full rounded-md bg-[#f5821f] py-2.5 text-[16px] font-semibold text-white hover:bg-[#e56a00]">
               <span className="inline-flex items-center gap-2"><Zap className="h-4 w-4 fill-current" /> QUICK PAY</span>
               <div className="text-[12px] font-medium">Available Balance : {fmtINR(availableBalance)}</div>
-            </button>
+            </button> */}
 
             <div className="px-1 text-[13px] text-slate-600">✓ From Card/UPI or other modes</div>
             <button
-              disabled={!bookingFormValid}
+              type="button"
               onClick={handleProceed}
-              className={clsx(
-                'w-full rounded-md py-3 text-[16px] font-semibold text-white',
-                bookingFormValid ? 'bg-[#f5821f] hover:bg-[#e56a00]' : 'bg-[#f5821f]/60 cursor-not-allowed',
-              )}
+              className="w-full rounded-md bg-[#f5821f] py-3 text-[16px] font-semibold text-white hover:bg-[#e56a00]"
             >
               <span className="inline-flex items-center gap-2"><ChevronsRight className="h-5 w-5" />Proceed To Pay</span>
             </button>
 
-            <div className="px-1 text-[13px] text-slate-600">✓ To Hold Booking</div>
-            <button type="button" className="w-full rounded-md border-2 border-[#f5821f] py-3 text-[16px] font-semibold text-[#f5821f] hover:bg-orange-50">
-              <span className="inline-flex items-center gap-2"><Hourglass className="h-4 w-4" />Hold/Block</span>
-            </button>
+        
 
             {reviewError && (
               <div className="rounded border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700 inline-flex items-start gap-2">
@@ -699,19 +697,48 @@ export default function HotelBook() {
   );
 }
 
-function PanChoice({ label, checked, onChange }) {
-  return (
-    <label className="inline-flex items-center gap-2 text-[16px] font-semibold text-slate-800 cursor-pointer">
-      <input
-        type="radio"
-        name="panType"
-        checked={checked}
-        onChange={onChange}
-        className="h-5 w-5 border-slate-300 accent-[#ff7a00]"
-      />
-      {label}
-    </label>
-  );
+function getAuthenticatedGuest(user) {
+  const fullName = firstNonEmpty(user?.fullName, user?.full_name, user?.name, user?.displayName);
+  const nameParts = fullName.split(/\s+/).filter(Boolean);
+  const titleValue = firstNonEmpty(user?.title, user?.salutation);
+  const title = TITLES.includes(titleValue) ? titleValue : '';
+
+  return {
+    title,
+    firstName: firstNonEmpty(user?.firstName, user?.first_name) || nameParts[0] || '',
+    lastName: firstNonEmpty(user?.lastName, user?.last_name) || nameParts.slice(1).join(' '),
+    email: firstNonEmpty(user?.email, user?.emailAddress),
+    phone: firstNonEmpty(user?.phone, user?.mobile, user?.mobileNumber, user?.phoneNumber),
+    employeeId: firstNonEmpty(user?.employeeId, user?.employee_id),
+    hasData: Boolean(fullName || user?.email || user?.phone || user?.mobile || user?.employeeId || user?.employee_id),
+  };
+}
+
+function firstNonEmpty(...values) {
+  const value = values.find((item) => item !== null && item !== undefined && String(item).trim());
+  return value === null || value === undefined ? '' : String(value).trim();
+}
+
+function buildHotelGuestDetails(paxByRoom, contact, specialRequest) {
+  const rooms = paxByRoom.map((room) => room.map((pax) => ({
+    title: pax.ti,
+    firstName: pax.fN.trim(),
+    lastName: pax.lN.trim(),
+    passengerType: pax.pt,
+    ...(pax.age ? { age: pax.age } : {}),
+  })));
+
+  return {
+    rooms,
+    guests: rooms.flat(),
+    contact: {
+      ...contact,
+      phone: contact.phone.trim(),
+      email: contact.email.trim(),
+      employeeId: contact.employeeId.trim(),
+    },
+    specialRequest: specialRequest.trim(),
+  };
 }
 
 function PanInput({ label, value, placeholder, maxLength, onChange }) {
@@ -765,6 +792,15 @@ function safeParseRooms(raw) {
     // fallback
   }
   return [{ adults: 1, children: 0, ages: [] }];
+}
+
+function safeParseImageList(raw) {
+  try {
+    const parsed = JSON.parse(raw || '');
+    return Array.isArray(parsed) ? parsed.filter((src) => typeof src === 'string' && src.trim()) : [];
+  } catch {
+    return [];
+  }
 }
 
 function nightCount(checkin, checkout) {

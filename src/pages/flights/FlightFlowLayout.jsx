@@ -136,29 +136,17 @@ function FareSummary({ fare, includeMealBaggage = false, showCash = true }) {
 
       {showCash ? (
         <>
-          <div className="rounded-lg border border-[#ddd] bg-[#f4f4f4] px-3 py-3">
-            <div className="text-[14px] font-extrabold text-[#1f2a3a]">TJ Cash:</div>
-            <div className="mb-2 text-[12px] text-[#5f6b7b]">1 TJ Cash = INR 1</div>
-            <div className="flex gap-2">
-              <input
-                className="h-9 flex-1 rounded border border-[#d4d4d4] bg-white px-3 text-[14px] outline-none"
-                placeholder="Enter Cash Amount"
-              />
-              <button type="button" className="rounded bg-[#ff7f2a] px-4 text-[14px] font-bold text-white">
-                REDEEM
-              </button>
-            </div>
-          </div>
+        
 
           <div className="rounded-lg border border-[#ddd] bg-[#f4f4f4] px-3 py-3">
             <div className="flex gap-2">
-              <input
+              {/* <input
                 className="h-9 flex-1 rounded border border-[#d4d4d4] bg-white px-3 text-[14px] outline-none"
                 placeholder="Enter Voucher Code"
               />
               <button type="button" className="rounded bg-[#ff7f2a] px-4 text-[14px] font-bold text-white">
                 APPLY
-              </button>
+              </button> */}
             </div>
           </div>
         </>

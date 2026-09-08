@@ -4,11 +4,50 @@ export const fmtINR = (n) => new Intl.NumberFormat('en-IN', {
   maximumFractionDigits: 0,
 }).format(Number(n) || 0);
 
+const IMAGE_PATH_KEYS = [
+  'url',
+  'imageUrl',
+  'image',
+  'link',
+  'href',
+  'path',
+  'src',
+];
+
+function readImageFromObject(candidate) {
+  if (!candidate || typeof candidate !== 'object') return '';
+  for (const key of IMAGE_PATH_KEYS) {
+    const raw = candidate[key];
+    if (typeof raw === 'string' && raw.trim()) return raw;
+  }
+  if (typeof candidate.src === 'string' && candidate.src.trim()) return candidate.src;
+  if (typeof candidate.url === 'object' && candidate.url?.href) return candidate.url.href;
+  if (candidate.image?.href) return candidate.image.href;
+  if (candidate.image?.url && typeof candidate.image.url === 'string' && candidate.image.url.trim()) return candidate.image.url;
+  return '';
+}
+
+function candidateImageSet(source) {
+  if (!source) return [];
+
+  if (typeof source === 'string') return [source];
+  if (Array.isArray(source)) return source;
+  if (Array.isArray(source?.images)) return source.images;
+  if (Array.isArray(source?.media)) return source.media;
+  if (Array.isArray(source?.photos)) return source.photos;
+  if (Array.isArray(source?.imageUrls)) return source.imageUrls;
+  if (Array.isArray(source?.mediaImages)) return source.mediaImages;
+  if (Array.isArray(source?.imageGallery)) return source.imageGallery;
+  if (Array.isArray(source?.images?.gallery)) return source.images.gallery;
+
+  return [source];
+}
+
 export function imageUrl(image) {
   if (!image) return '';
   if (typeof image === 'string') return image;
 
-  const links = image.links;
+  const links = image?.links;
   if (links && typeof links === 'object') {
     const preferred = links.XXL || links.XL || links.L || links.M || links.S || links.Standard;
     if (preferred?.href) return preferred.href;
@@ -16,22 +55,30 @@ export function imageUrl(image) {
     if (first?.href) return first.href;
   }
 
-  return image.url || image.imageUrl || image.link || image.href || image.path || '';
+  const direct = readImageFromObject(image);
+  if (direct) return direct;
+
+  if (image?.url?.href) return image.url.href;
+  if (typeof image?.uri === 'string' && image.uri) return image.uri;
+
+  const directImage = image?.image || image?.thumbnail;
+  if (typeof directImage === 'string' && directImage.trim()) return directImage;
+  if (typeof directImage?.href === 'string') return directImage.href;
+  if (typeof image?.media === 'string' && image.media.trim()) return image.media;
+  if (typeof image?.thumb === 'string' && image.thumb.trim()) return image.thumb;
+  return '';
 }
 
 export function collectHotelImages(...sources) {
+  const normalizedSources = sources.flatMap(candidateImageSet).filter(Boolean);
   const seen = new Set();
   const urls = [];
 
-  for (const source of sources) {
-    if (!Array.isArray(source)) continue;
-
-    for (const item of source) {
-      const url = imageUrl(item);
-      if (!url || seen.has(url)) continue;
-      seen.add(url);
-      urls.push(url);
-    }
+  for (const source of normalizedSources) {
+    const url = imageUrl(source);
+    if (!url || seen.has(url)) continue;
+    seen.add(url);
+    urls.push(url);
   }
 
   return urls;
@@ -44,22 +91,88 @@ export function firstResult(payload) {
   return payload?.result || payload?.data || null;
 }
 
+function looksLikeHotelRecord(candidate) {
+  if (!candidate || typeof candidate !== 'object') return false;
+  return Boolean(
+    candidate.hotelName ||
+    candidate.tjHotelId ||
+    candidate.tjid ||
+    candidate.name ||
+    Array.isArray(candidate.options) ||
+    candidate.staticContent ||
+    candidate.amenities ||
+    candidate.facilities ||
+    candidate.images,
+  );
+}
+
+function extractLiveCandidates(payload) {
+  if (!payload || typeof payload !== 'object') return [];
+  return [
+    payload,
+    payload?.result,
+    payload?.data,
+    payload?.hotel,
+    payload?.data?.hotel,
+    payload?.property,
+    payload?.data?.property,
+    payload?.propertyInfo,
+    payload?.result?.hotel,
+    payload?.result?.property,
+    payload?.result?.propertyInfo,
+    firstResult(payload),
+  ].filter(Boolean);
+}
+
 export function extractLiveDetail(payload) {
-  const fromResults = firstResult(payload);
-  if (fromResults && (Array.isArray(fromResults.options) || fromResults.hotelName || fromResults.tjHotelId)) {
-    return fromResults;
+  for (const candidate of extractLiveCandidates(payload)) {
+    if (looksLikeHotelRecord(candidate)) return candidate;
   }
 
   if (payload && typeof payload === 'object') {
-    if (Array.isArray(payload.options) || payload.hotelName || payload.tjHotelId) return payload;
+    if (Array.isArray(payload?.options) || payload?.hotelName || payload?.tjHotelId) return payload;
     if (payload.data && typeof payload.data === 'object') {
-      if (Array.isArray(payload.data.options) || payload.data.hotelName || payload.data.tjHotelId) {
+      if (Array.isArray(payload.data?.options) || payload.data?.hotelName || payload.data?.tjHotelId) {
         return payload.data;
       }
     }
   }
 
-  return fromResults;
+  return firstResult(payload);
+}
+
+function normalizeCancellationPolicy(raw) {
+  if (!raw) return {};
+
+  if (typeof raw === 'string') {
+    return {
+      policyText: raw,
+      isRefundable: false,
+      penalties: [],
+    };
+  }
+
+  if (typeof raw !== 'object') return {};
+
+  const penalties = Array.isArray(raw.penalties) || Array.isArray(raw.penalty)
+    ? (Array.isArray(raw.penalties) ? raw.penalties : raw.penalty)
+    : [];
+
+  const policyText = raw.policyText || raw.summary || raw.description || raw.note || '';
+  const isRefundable = Boolean(
+    raw.isRefundable ??
+    raw.refundable ??
+    raw.freeCancellation ??
+    raw.cancellationPolicy?.isRefundable ??
+    raw.cancellation?.isRefundable,
+  );
+
+  return {
+    ...raw,
+    isRefundable,
+    penalties,
+    policyText,
+  };
 }
 
 export function fallbackRoomFromSearchQuery(query = {}) {
@@ -344,11 +457,8 @@ export function optionToRoom(option) {
   const room = (option?.roomInfo || [])[0] || option?.room || {};
   const pricing = option?.pricing || option?.price || option?.fare || {};
   const compliance = option?.compliance || {};
-  const roomImages = collectHotelImages(
-    room.images,
-    option?.images,
-    option?.roomImages,
-    option?.media,
+  const cancellation = normalizeCancellationPolicy(
+    option?.cancellation || option?.cancellationPolicy || option?.cancelPolicy || option?.cancellation_text,
   );
   const totalRateINR = Number(
     pricing.totalPrice
@@ -356,45 +466,110 @@ export function optionToRoom(option) {
     ?? pricing.total
     ?? pricing.amount
     ?? option.totalRateINR
-    ?? option.totalPrice
+    ?? option.totalFare
+    ?? option.total
     ?? option.amount
+    ?? option.rate
+    ?? option.price
     ?? 0,
   );
   const nightlyRateINR = Number(
     pricing.basePrice
     ?? pricing.nightly
+    ?? pricing.baseFare
     ?? pricing.priceWithoutTax
     ?? option.nightlyRateINR
+    ?? option.nightly
+    ?? option.ratePerNight
     ?? totalRateINR
     ?? 0,
   );
+  const taxes = Number(
+    pricing.taxes
+    ?? pricing.tax
+    ?? option.taxes
+    ?? option.tax
+    ?? option.taxesAndFees
+    ?? option.fees
+    ?? 0,
+  );
+  const serviceCharges = Number(
+    pricing.mf
+    ?? pricing.mft
+    ?? pricing.managementFees
+    ?? pricing.managementFeesTax
+    ?? pricing.serviceCharge
+    ?? pricing.serviceCharges
+    ?? option.serviceCharges
+    ?? 0,
+  );
+  const taxesAndFees = taxes + serviceCharges;
+
+  const roomImages = collectHotelImages(
+    room.images,
+    option?.images,
+    option?.roomImages,
+    option?.media,
+    room.media,
+    room.photos,
+  );
+  const cancellationSummary = cancellation.policyText || formatCancellationSummary(cancellation);
+  const amenitySource = [
+    room.amenities,
+    room.facilities,
+    room.facility,
+    option?.amenities,
+    option?.facilities,
+    option?.roomAmenities,
+  ];
 
   return {
-    id: option?.optionId || room.id || room.name,
+    id: option?.optionId || room.id || room.name || option?.id || option?.roomId,
     optionId: option?.optionId || '',
     roomId: room.id || room.roomId || '',
-    name: room.name || option?.roomName || option?.name || 'Room',
+    reviewHash: option?.reviewHash || option?.review_id || option?.reviewId || option?.hash || '',
+    name: room.name
+      || option?.roomName
+      || option?.name
+      || option?.title
+      || room.roomName
+      || option?.room_type
+      || 'Room',
     bedType: room.bedType || room.bed || room.bedDescription || '',
-    maxGuests: Number(room.maxOccupancy || room.maxGuests || room.occupancy || 0),
-    mealBasis: option?.mealBasis || option?.boardBasis || 'Room Only',
-    boardBasis: option?.mealBasis || option?.boardBasis || 'Room Only',
-    refundable: Boolean(option?.cancellation?.isRefundable ?? option?.refundable),
+    maxGuests: Number(room.maxOccupancy || room.maxGuests || room.occupancy || room.capacity || 0),
+    mealBasis: option?.mealBasis || option?.boardBasis || option?.mealPlan || option?.meal || 'Room Only',
+    boardBasis: option?.mealBasis || option?.boardBasis || option?.mealPlan || option?.meal || 'Room Only',
+    refundable: Boolean(option?.cancellation?.isRefundable ?? option?.refundable ?? option?.isRefundable),
     panRequired: Boolean(compliance.panRequired),
     panOptional: !compliance.panRequired,
-    cancellation: option?.cancellation || {},
-    cancellationSummary: formatCancellationSummary(option?.cancellation),
+    cancellation,
+    cancellationSummary,
     totalRateINR,
     nightlyRateINR,
-    taxesAndFees: Number(pricing.taxes || 0) + Number(pricing.mf || 0) + Number(pricing.mft || 0),
+    taxesAndFees,
+    taxes: taxes,
+    fees: Number(pricing.mf || pricing.managementFees || pricing.serviceCharge || 0) + Number(pricing.mft || pricing.managementFeesTax || 0),
+    baseFare: Number(pricing.basePrice || pricing.base || 0),
     pricing,
     images: roomImages,
-    amenities: normalizeAmenityList(room.amenities || option?.amenities || option?.roomAmenities || []),
+    amenities: normalizeAmenityList(amenitySource),
+    facilities: normalizeAmenityList(room.facilities || option?.facilities || []),
+    cancellationText: cancellationSummary,
   };
 }
 
 export function normalizeAmenityList(amenities) {
   if (!Array.isArray(amenities)) return [];
-  return amenities
+
+  const flatten = amenities
+    .flatMap((item) => {
+      if (!item) return [];
+      if (Array.isArray(item)) return item;
+      return [item];
+    })
+    .filter((item) => item != null && item !== '');
+
+  return flatten
     .map((item) => {
       if (typeof item === 'string') return { id: item, name: item };
       return {

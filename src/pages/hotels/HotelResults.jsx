@@ -1686,6 +1686,7 @@ function HotelCard({ hotel, query, view, isFavourite, onToggleFavourite }) {
     : hotel.thumbnail
       ? [hotel.thumbnail]
       : fallbackGallery;
+  const detailPath = `${path}&images=${encodeURIComponent(JSON.stringify(gallery))}`;
   const totalImages = Math.max(1, gallery.length);
   const [imageIndex, setImageIndex] = useState(0);
   const safeImageIndex = imageIndex % totalImages;
@@ -1712,7 +1713,7 @@ function HotelCard({ hotel, query, view, isFavourite, onToggleFavourite }) {
   if (view === 'grid') {
     return (
       <article className="rounded-[18px] border border-[#e3e6ea] bg-white p-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.08)] hover:shadow-[0_10px_22px_-8px_rgba(15,23,42,0.24)] transition">
-        <Link to={path} className="block">
+        <Link to={detailPath} className="block">
           <div className="relative aspect-[16/9] rounded-[14px] overflow-hidden bg-slate-100">
             <img src={activeImage} alt={hotel.name} className="w-full h-full object-cover" />
 
@@ -1798,11 +1799,11 @@ function HotelCard({ hotel, query, view, isFavourite, onToggleFavourite }) {
     <article
       role="button"
       tabIndex={0}
-      onClick={() => navigate(path)}
+      onClick={() => navigate(detailPath)}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          navigate(path);
+          navigate(detailPath);
         }
       }}
       className="rounded-[24px] border border-[#ecd8c8] bg-white px-5 py-6 shadow-[0_8px_20px_rgba(15,23,42,0.1)] transition hover:shadow-[0_12px_28px_rgba(15,23,42,0.16)] cursor-pointer"
@@ -1840,7 +1841,7 @@ function HotelCard({ hotel, query, view, isFavourite, onToggleFavourite }) {
 
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-3">
-            <Link to={path} className="text-[1.75rem] font-semibold leading-tight text-slate-800 hover:text-accent-600 line-clamp-2">
+            <Link to={detailPath} className="text-[1.75rem] font-semibold leading-tight text-slate-800 hover:text-accent-600 line-clamp-2">
               {hotel.name}
             </Link>
             <span className="inline-flex items-center gap-0.5">

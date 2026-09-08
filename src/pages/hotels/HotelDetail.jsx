@@ -83,6 +83,39 @@ function resolvePropertyTypeLabel(value) {
   return String(value);
 }
 
+function normalizeText(value) {
+  if (value == null) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number') return String(value);
+  return '';
+}
+
+function toInfoSections(entries = []) {
+  return entries
+    .filter(Boolean)
+    .map((entry) => ({
+      label: entry.label,
+      value: normalizeText(entry.value),
+    }))
+    .filter((entry) => entry.value);
+}
+
+function getArrayValue(...values) {
+  for (const value of values) {
+    if (Array.isArray(value)) return value;
+  }
+  return [];
+}
+
+function safeParseImageList(value) {
+  try {
+    const parsed = JSON.parse(value || '');
+    return Array.isArray(parsed) ? parsed.filter((src) => typeof src === 'string' && src.trim()) : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function HotelDetail() {
   const { id } = useParams();
   const [params] = useSearchParams();
@@ -117,11 +150,13 @@ export default function HotelDetail() {
       mealBasis: params.get('mealBasis') || '',
       roomName: params.get('roomName') || '',
       nationality: params.get('nationality') || params.get('residence') || '106',
+      reviewHash: params.get('reviewHash') || '',
       gst: params.get('gst') === '1',
     };
   }, [params]);
 
   const tjHotelId = String(id || '').trim();
+  const listingImages = useMemo(() => safeParseImageList(params.get('images')), [params]);
 
   const { data: staticData, isLoading: staticLoading, error: staticError } = useQuery({
     queryKey: ['hotel-static', tjHotelId],
@@ -160,18 +195,50 @@ export default function HotelDetail() {
   });
 
   const staticRecord = firstResult(staticData) || staticData?.hotel || staticData || null;
-  const staticContent = staticRecord?.staticContent || staticData?.staticContent || staticRecord || extractLiveDetail(liveData)?.staticContent || {};
-  const detail = extractLiveDetail(liveData);
+  const detail = extractLiveDetail(liveData) || {};
+  const detailHotel = detail?.hotel || detail?.property || detail?.propertyInfo || {};
+  const staticContent = detail?.staticContent || detailHotel?.staticContent || staticRecord?.staticContent || staticData?.staticContent || staticRecord || {};
+  const address = staticContent.address || detailHotel?.address || detail?.address || {};
+  const detailPolicies = detail?.policies || detailHotel?.policies || {};
+  const combinedPolicies = { ...(staticContent.policies || {}), ...(detailPolicies || {}) };
+  const detailAmenities = getArrayValue(
+    staticContent.amenities,
+    staticContent.amenityList,
+    detail?.amenities,
+    detailHotel?.amenities,
+    staticRecord?.amenities,
+  );
+  const detailFacilities = getArrayValue(
+    staticContent.facilities,
+    staticContent.facilityList,
+    detail?.facilities,
+    detailHotel?.facilities,
+    staticRecord?.facilities,
+    staticRecord?.facilityList,
+    staticRecord?.propertyAmenities,
+  );
+  const detailImages = getArrayValue(
+    staticContent.images,
+    staticRecord?.images,
+    detail?.images,
+    detailHotel?.images,
+    staticContent.media,
+    detail?.media,
+    detailHotel?.media,
+    staticContent?.imageGallery,
+    detail?.imageGallery,
+  );
   const listingFallbackRoom = useMemo(() => fallbackRoomFromSearchQuery(query), [query]);
-  const address = staticContent.address || {};
   const images = useMemo(
     () => collectHotelImages(
-      staticContent.images,
-      staticRecord?.images,
-      detail?.images,
-      detail?.staticContent?.images,
+      listingImages,
+      staticContent,
+      staticRecord,
+      detail,
+      detailHotel,
+      detailImages,
     ),
-    [staticContent.images, staticRecord?.images, detail?.images, detail?.staticContent?.images],
+    [detail, detailHotel, detailImages, listingImages, staticContent, staticRecord],
   );
   const galleryImages = useMemo(
     () => images
@@ -179,16 +246,57 @@ export default function HotelDetail() {
       .filter(({ src }) => !failedImageSources.has(src)),
     [images, failedImageSources],
   );
-  const amenityGroups = staticContent.amenityGroups || [];
   const flatAmenities = useMemo(
-    () => normalizeAmenityList(staticContent.amenities || []),
-    [staticContent.amenities],
+    () => normalizeAmenityList([
+      ...detailAmenities,
+      ...detailFacilities,
+      staticContent.amenities || [],
+      staticContent.facilities || [],
+      detail?.facilities || [],
+    ]),
+    [detailAmenities, detailFacilities, detail, staticContent.amenities, staticContent.facilities],
   );
-  const descriptionSections = collectDescriptions(staticContent.descriptions || {});
-  const policySections = collectPolicySections(staticContent.policies || {});
+  const facilityGroups = useMemo(
+    () => normalizeAmenityList([
+      ...detailFacilities,
+      staticContent.facilities || [],
+      detail?.facilities || [],
+    ]),
+    [detailFacilities, staticContent.facilities, detail],
+  );
+  const amenitySections = useMemo(() => {
+    const sections = [];
+    if (flatAmenities.length) sections.push({ key: 'amenities', title: 'Amenities', items: flatAmenities });
+    if (facilityGroups.length) {
+      sections.push({ key: 'facilities', title: 'Facilities', items: facilityGroups });
+    }
+    return sections.length ? sections : [{ key: 'amenities', title: 'Hotel amenities', items: [] }];
+  }, [flatAmenities, facilityGroups]);
+  const descriptionFromPayload = useMemo(() => {
+    const source = collectDescriptions(staticContent.descriptions || {});
+    const extra = [
+      staticContent.description,
+      detail.description,
+      detailHotel?.description,
+      detail?.overview,
+      detailHotel?.overview,
+    ].filter(Boolean).map((item) => ({ title: 'Description', text: String(item).trim() }));
+    return [...source, ...extra];
+  }, [detail.description, detail.overview, detailHotel, staticContent.description, staticContent.descriptions, staticContent.overview]);
+  const descriptionSections = useMemo(() => {
+    const seen = new Set();
+    return descriptionFromPayload.filter((section) => {
+      if (!section?.text) return false;
+      const key = `${section.title}-${section.text}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [descriptionFromPayload]);
+  const policySections = collectPolicySections(combinedPolicies);
   const checkInOutTimes = useMemo(
-    () => extractCheckInOutTimes(staticContent.policies || {}),
-    [staticContent.policies],
+    () => extractCheckInOutTimes(combinedPolicies),
+    [combinedPolicies],
   );
   const reviewSummary = useMemo(
     () => extractReviewSummary(detail || {}),
@@ -196,7 +304,13 @@ export default function HotelDetail() {
   );
 
   const roomOptions = useMemo(() => {
-    const options = Array.isArray(detail?.options) ? detail.options : [];
+    const options = Array.isArray(detail?.options)
+      ? detail.options
+      : Array.isArray(detail?.roomOptions)
+        ? detail.roomOptions
+        : Array.isArray(detailHotel?.options)
+          ? detailHotel.options
+          : [];
     const hotelAmenities = flatAmenities.slice(0, 8);
     const fallbackImages = images.slice(0, 8);
     const liveRooms = options.map((option) => {
@@ -238,10 +352,22 @@ export default function HotelDetail() {
   );
 
   const leadRoom = selectedRoom || filteredRooms[0] || roomOptions[0] || null;
-  const hotelName = staticRecord?.hotelName || staticContent.hotelName || detail?.hotelName || query.hotelName || 'Hotel details';
-  const starRating = Number(staticRecord?.starRating || staticContent.starRating || detail?.starRating || 0);
+  const hotelName = detail?.hotelName || detailHotel?.hotelName || staticRecord?.hotelName || staticContent.hotelName || query.hotelName || 'Hotel details';
+  const starRating = Number(
+    detail?.starRating
+      || detailHotel?.starRating
+      || detail?.rating
+      || staticRecord?.starRating
+      || staticContent.starRating
+      || 0,
+  );
   const propertyType = resolvePropertyTypeLabel(
-    staticRecord?.propertyType || staticContent.propertyType || detail?.propertyType,
+    staticRecord?.propertyType
+      || staticContent.propertyType
+      || detail?.propertyType
+      || detailHotel?.propertyType
+      || detail?.property_category
+      || detailHotel?.property_category,
   );
   const fullAddress = buildAddressLine(address, query.city);
   const mapCoords = useMemo(
@@ -274,13 +400,33 @@ export default function HotelDetail() {
   );
   const totalAdults = query.rooms.reduce((sum, room) => sum + Number(room.adults || 0), 0);
   const hasMultipleRooms = roomOptions.length > 1;
+  const hotelInfoItems = useMemo(() => toInfoSections([
+    { label: 'City', value: query.city || address.city || address.cityName || detailHotel?.city || detailHotel?.cityName },
+    { label: 'Area', value: query.city || address.region || address.locality || detailHotel?.area || detailHotel?.region || detailHotel?.regionName },
+    { label: 'Check-in', value: checkInOutTimes.checkIn || '--' },
+    { label: 'Check-out', value: checkInOutTimes.checkOut || '--' },
+    { label: 'Meal plan', value: query.mealBasis || detail?.mealBasis || detailHotel?.mealBasis || 'Room only' },
+  ]), [address, checkInOutTimes.checkIn, checkInOutTimes.checkOut, detail, detailHotel, query.city, query.mealBasis]);
+  const featureSections = useMemo(() => {
+    const roomTypes = roomOptions.map((room) => room.name).filter(Boolean);
+    const uniqueRoomTypes = Array.from(new Set(roomTypes));
+    const raw = [
+      { label: 'Available room types', value: uniqueRoomTypes.join(', ') || 'Standard room type' },
+      ...hotelInfoItems,
+    ];
+    return toInfoSections(raw);
+  }, [roomOptions, hotelInfoItems]);
   const hasStaticContent = Boolean(
     (staticData?.success && staticRecord) ||
     staticContent.hotelName ||
     detail?.hotelName ||
+    detailHotel?.hotelName ||
     query.hotelName,
   );
   const showFatalError = staticError && liveError && !hasStaticContent;
+  const isInitializing = !hasStaticContent && (staticLoading || liveLoading);
+  const hasAnyError = staticError || liveError;
+  const isEmptyContent = !hasStaticContent && !detail;
 
   function toggleFilter(key) {
     setFilters((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -303,12 +449,16 @@ export default function HotelDetail() {
     if (room.fromSearchListing) return;
 
     const bookParams = new URLSearchParams(params);
+    const selectedReviewHash = room.reviewHash || detail?.reviewHash || query.reviewHash;
     if (room.optionId) bookParams.set('optionId', room.optionId);
-    if (detail?.reviewHash) bookParams.set('reviewHash', detail.reviewHash);
+    if (selectedReviewHash) bookParams.set('reviewHash', selectedReviewHash);
     if (liveData?.correlationId) bookParams.set('correlationId', liveData.correlationId);
+    if (room.taxesAndFees > 0) bookParams.set('taxesAndFees', String(room.taxesAndFees));
     bookParams.set('amount', String(room.totalRateINR));
     bookParams.set('mealBasis', room.mealBasis);
     bookParams.set('roomName', room.name);
+    if (room.cancellationSummary) bookParams.set('cancellationSummary', room.cancellationSummary);
+    if (galleryImages.length) bookParams.set('images', JSON.stringify(galleryImages.map(({ src }) => src)));
     navigate(`/hotels/${encodeURIComponent(id)}/book?${bookParams.toString()}`);
   }
 
@@ -319,15 +469,27 @@ export default function HotelDetail() {
           <ArrowLeft className="w-4 h-4" /> Back to results
         </Link>
 
-        {staticLoading && !hasStaticContent && (
+        {isInitializing && !showFatalError && (
           <div className="rounded-md border border-slate-200 bg-white p-8 text-center text-slate-500">
-            Loading hotel information...
+            Loading hotel details...
           </div>
         )}
 
         {showFatalError && (
           <div className="rounded-md border border-red-200 bg-red-50 p-6 text-center text-red-700 text-sm">
             Failed to load hotel details. Please go back and try again.
+          </div>
+        )}
+
+        {hasAnyError && !showFatalError && hasStaticContent && (
+          <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+            Live hotel details could not be loaded right now. Showing available hotel information.
+          </div>
+        )}
+
+        {isEmptyContent && !isInitializing && !showFatalError && (
+          <div className="rounded-md border border-slate-200 bg-white p-8 text-center text-slate-500">
+            Hotel information is currently unavailable for this selection. Please try again.
           </div>
         )}
 
