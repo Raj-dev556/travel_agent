@@ -20,7 +20,7 @@ export default function PolicyPanel({ action = 'listing', itemId }) {
         items={[
           { path: '/grade-policies', label: 'Listing', icon: ClipboardList, end: true },
           { path: '/grade-policies/create', label: 'Create', icon: Plus },
-          firstGrade && { path: `/grade-policies/${firstGrade}/edit`, label: 'Edit', icon: FileEdit },
+          // firstGrade && { path: `/grade-policies/${firstGrade}/edit`, label: 'Edit', icon: FileEdit },
           { path: '/grade-policies/upload', label: 'Excel Upload', icon: Upload },
         ].filter(Boolean)}
       />

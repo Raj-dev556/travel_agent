@@ -182,7 +182,7 @@ export default function FlightSearch() {
             <div className="mt-4 flex flex-wrap lg:flex-nowrap items-stretch gap-2">
               {/* Combined From ↔ To pill */}
               <div className="relative bg-white rounded-lg shadow-sm flex items-stretch flex-1 min-w-[280px]">
-                <AirportField label="Where Fromss ?" value={from} onChange={setFrom} side="from" placeholder="Where Frommm ?" />
+                <AirportField label="Where Fromss ?" value={from} onChange={setFrom} side="from" placeholder="Where From ?" />
                 <div className="w-px bg-slate-200 my-3" />
                 <AirportField label="Where To ?" value={to} onChange={setTo} side="to" placeholder="Where To ?" />
                 <button
@@ -237,7 +237,7 @@ export default function FlightSearch() {
               {/* Leg 1 — pinned to from/to/departDate so existing state stays consistent. */}
               <div className="flex flex-wrap lg:flex-nowrap items-stretch gap-2">
                 <div className="relative bg-white rounded-lg shadow-sm flex items-stretch flex-1 min-w-[280px]">
-                  <AirportField label="Where Frommm ?" value={from} onChange={setFrom} side="from" placeholder="Where Frommm ?" />
+                  <AirportField label="Where From ?" value={from} onChange={setFrom} side="from" placeholder="Where From ?" />
                   <div className="w-px bg-slate-200 my-3" />
                   <AirportField label="Where To ?" value={to} onChange={setTo} side="to" placeholder="Where To ?" />
                   <button
@@ -282,11 +282,11 @@ export default function FlightSearch() {
                 <div key={i} className="flex flex-wrap lg:flex-nowrap items-stretch gap-2">
                   <div className="relative bg-white rounded-lg shadow-sm flex items-stretch flex-1 min-w-[280px]">
                     <AirportField
-                      label="Where Frommm ?"
+                      label="Where From ?"
                       value={leg.from}
                       onChange={(v) => updateLeg(i, { from: v })}
                       side="from"
-                      placeholder="Where Frommm ?"
+                      placeholder="Where From ?"
                     />
                     <div className="w-px bg-slate-200 my-3" />
                     <AirportField

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { CheckCircle2, FileEdit, List, Plus, Send, Stamp } from 'lucide-react';
@@ -15,16 +15,44 @@ export function TripWorkflow({ action = 'listing', tripId }) {
   const client = useQueryClient();
   const navigate = useNavigate();
   const currentUser = useAuthStore((state) => state.user);
+  const isEmployee = currentUser?.roles?.includes('Employee') || currentUser?.role === 'Employee';
   const canEditTrip = (trip) => (
     currentUser?.employeeId === trip.requester_employee_id ||
     currentUser?.roles?.some((role) => ['Company Admin', 'Travel Desk', 'Super Admin'].includes(role))
   );
   const options = useQuery({ queryKey: ['trip-options'], queryFn: () => api.get('/trips/options').then((r) => r.data) });
-  const employees = options.data?.employees || [];
+  const employees = Array.from(new Map([
+    ...(Array.isArray(options.data?.employees) ? options.data.employees : []),
+    ...(Array.isArray(options.data?.users) ? options.data.users : []),
+    ...(Array.isArray(options.data?.data?.employees) ? options.data.data.employees : []),
+  ].map((employee) => {
+    const id = employee.id || employee.employee_id || employee.employeeId;
+    const name = employee.name || employee.fullName || [employee.firstName, employee.lastName].filter(Boolean).join(' ');
+    return [id, id ? { ...employee, id, name: name || id } : null];
+  }).filter((entry) => entry[1]))).map(([, employee]) => employee);
   const budgets = options.data?.budgets || [];
   const trips = useQuery({ queryKey: ['trips'], queryFn: () => api.get('/trips', { params: { limit: 500 } }).then((r) => r.data) });
   const detail = useQuery({ queryKey: ['trip', tripId], queryFn: () => api.get(`/trips/${tripId}`).then((r) => r.data), enabled: Boolean(tripId) });
-  const [form, setForm] = useState({ title: '', traveler_ids: [], budget_id: '', purpose: '', source_city: '', destination_city: '', start_date: '', end_date: '', travel_type: 'Domestic', estimated_cost: '' });
+  const [form, setForm] = useState(() => ({
+    title: '',
+    traveler_ids: isEmployee && currentUser?.employeeId ? [currentUser.employeeId] : [],
+    budget_id: '',
+    purpose: '',
+    source_city: '',
+    destination_city: '',
+    start_date: '',
+    end_date: '',
+    travel_type: 'Domestic',
+    estimated_cost: '',
+  }));
+
+  useEffect(() => {
+    if (!isEmployee || !currentUser?.employeeId) return;
+
+    setForm((currentForm) => currentForm.traveler_ids.length
+      ? currentForm
+      : { ...currentForm, traveler_ids: [currentUser.employeeId] });
+  }, [currentUser?.employeeId, isEmployee]);
   const refresh = () => { client.invalidateQueries({ queryKey: ['trips'] }); client.invalidateQueries({ queryKey: ['trip', tripId] }); };
   const create = useMutation({
     mutationFn: (f) => api.post('/trips', {

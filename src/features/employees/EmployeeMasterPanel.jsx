@@ -20,7 +20,7 @@ export default function EmployeeMasterPanel({ action = 'listing', itemId }) {
         items={[
           { path: '/employee-master', label: 'Listing', icon: ClipboardList, end: true },
           { path: '/employee-master/create', label: 'Create', icon: Plus },
-          firstEmployeeId && { path: `/employee-master/${firstEmployeeId}/edit`, label: 'Edit', icon: FileEdit },
+          // firstEmployeeId && { path: `/employee-master/${firstEmployeeId}/edit`, label: 'Edit', icon: FileEdit },
           { path: '/employee-master/upload', label: 'Excel Upload', icon: Upload },
         ].filter(Boolean)}
       />

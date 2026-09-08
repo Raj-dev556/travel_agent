@@ -1158,6 +1158,7 @@ export default function FlightResults() {
 
     if (returnFlight) params.set('returnPriceId', String(returnFlight.priceId || returnFlight.id));
     if (multiPriceIds.length) params.set('multiPriceIds', multiPriceIds.join(','));
+    params.set('itinerary', JSON.stringify({ onwardFlight, returnFlight: returnFlight || null, multiFlights }));
 
     return `/flights/itinerary?${params.toString()}`;
   };
@@ -3284,7 +3285,6 @@ function FareRulesPanel({ seg }) {
     </div>
   );
 }
-
 
 
 

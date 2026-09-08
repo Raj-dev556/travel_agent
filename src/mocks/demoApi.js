@@ -311,6 +311,11 @@ export async function demoAdapter(config) {
     mockState.gradePolicies = mockState.gradePolicies.map((item) => (item.grade === grade ? { ...item, ...body, grade } : item));
     return response(config, mockState.gradePolicies.find((item) => item.grade === grade));
   }
+  if (method === 'DELETE' && path.startsWith('/grade-policies/')) {
+    const grade = decodeURIComponent(path.split('/')[2]);
+    mockState.gradePolicies = mockState.gradePolicies.filter((item) => item.grade !== grade);
+    return response(config, { message: 'Grade policy deleted', grade });
+  }
 
   if (method === 'GET' && path === '/budgets/summary') return response(config, dashboardSummary().budgets);
   if (method === 'GET' && path === '/budgets') return response(config, list(mockState.budgets, params));

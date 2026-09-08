@@ -11,6 +11,7 @@ import {
   mergeDraft,
   writeFlowDraft,
 } from './flightFlowData';
+import { useAuthStore } from '../../store/auth';
 
 function TextField({ value, onChange, placeholder = '', type = 'text' }) {
   return (
@@ -111,10 +112,28 @@ export default function FlightPassengerDetails() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const [draft, setDraft] = useState(() => hydrateFromQuery(params));
+  const authenticatedUser = useAuthStore((state) => state.user);
   const [selectedLeg, setSelectedLeg] = useState(0);
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
   const [bulkFileName, setBulkFileName] = useState('');
   const [bulkFileError, setBulkFileError] = useState('');
+
+  const userName = useMemo(() => getUserNameParts(authenticatedUser), [authenticatedUser]);
+
+  useEffect(() => {
+    if (!userName.firstName && !userName.lastName && !userName.email) return;
+    setDraft((prev) => {
+      const currentTraveller = prev.travellers?.[0] || {};
+      return mergeDraft(prev, {
+        travellers: [{
+          ...currentTraveller,
+          fN: userName.firstName || currentTraveller.fN,
+          lN: userName.lastName || currentTraveller.lN,
+        }],
+        contact: { email: userName.email || prev.contact.email },
+      });
+    });
+  }, [userName]);
 
   useEffect(() => {
     writeFlowDraft(draft);
@@ -379,4 +398,14 @@ export default function FlightPassengerDetails() {
       />
     </FlightFlowLayout>
   );
+}
+
+function getUserNameParts(user) {
+  const fullName = String(user?.fullName || user?.name || user?.displayName || '').trim();
+  const parts = fullName.split(/\s+/).filter(Boolean);
+  return {
+    firstName: String(user?.firstName || user?.first_name || parts[0] || '').trim(),
+    lastName: String(user?.lastName || user?.last_name || parts.slice(1).join(' ')).trim(),
+    email: String(user?.email || user?.emailAddress || '').trim(),
+  };
 }

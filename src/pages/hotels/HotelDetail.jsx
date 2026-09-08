@@ -535,7 +535,7 @@ export default function HotelDetail() {
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
                 <div className="space-y-4 min-w-0">
                   {galleryImages.length > 0 ? (
-                    <div className="grid auto-rows-[180px] gap-2 sm:gap-3 md:grid-cols-3 md:grid-rows-[180px_180px]">
+                    <div className="grid auto-rows-[180px] grid-flow-dense gap-2 sm:gap-3 md:grid-cols-3">
                       {galleryImages.slice(0, PREVIEW_IMAGE_COUNT).map(({ src, index }, previewIndex) => {
                         const isLastPreview = previewIndex === PREVIEW_IMAGE_COUNT - 1 && galleryImages.length > PREVIEW_IMAGE_COUNT;
                         return (
@@ -546,7 +546,6 @@ export default function HotelDetail() {
                             className={clsx(
                               'relative overflow-hidden rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
                               previewIndex === 0 ? 'md:col-span-2 md:row-span-2' : '',
-                              previewIndex >= 3 ? 'md:row-start-2' : '',
                             )}
                           >
                             <img

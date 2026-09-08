@@ -158,12 +158,12 @@ export default function OrganizationHierarchy() {
               onChange={(value) => setForm({ ...form, lead_employee_id: value })}
               options={employees.map((employee) => ({ value: employee.id, label: `${employee.name} (${employee.id})` }))}
             />
-            <SelectField
+            {/* <SelectField
               label="Parent team"
               value={form.parent_team_id}
               onChange={(value) => setForm({ ...form, parent_team_id: value })}
               options={teams.map((team) => ({ value: team.id, label: team.name }))}
-            />
+            /> */}
             <div className="md:col-span-3 flex justify-end">
               <button className="btn-accent text-xs" disabled={createTeam.isPending} type="submit">
                 {createTeam.isPending ? 'Creating...' : 'Create Team'}

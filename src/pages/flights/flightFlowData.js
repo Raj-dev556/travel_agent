@@ -1,5 +1,12 @@
 const STORAGE_KEY = 'flight_booking_flow_draft_v1';
 
+function demoDateTime(offset, hour, minute) {
+  const date = new Date();
+  date.setHours(hour, minute, 0, 0);
+  date.setDate(date.getDate() + offset);
+  return `${date.toLocaleDateString('en-IN', { month: 'short', day: '2-digit', weekday: 'short' })}, ${date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false })}`;
+}
+
 export const FLOW_STEPS = [
   { id: 1, title: 'FIRST STEP', label: 'Flight Itinerary' },
   { id: 2, title: 'SECOND STEP', label: 'Passenger Details' },
@@ -12,10 +19,10 @@ export const ITINERARY_SEGMENTS = [
     airline: 'Air India',
     flightNo: 'AI-1804',
     duration: '2h 15m',
-    depDateTime: 'May 14, Thu, 22:00',
+    depDateTime: demoDateTime(0, 22, 0),
     depCity: 'Pune, India',
     depAirport: 'Lohegaon Arpt',
-    arrDateTime: 'May 15, Fri, 00:15',
+    arrDateTime: demoDateTime(1, 0, 15),
     arrCity: 'Delhi, India',
     arrAirport: 'Delhi Indira Gandhi Intl Terminal 2',
     refundable: 'Economy,Non Refundable',
@@ -24,32 +31,19 @@ export const ITINERARY_SEGMENTS = [
   {
     airline: 'Air India',
     flightNo: 'AI-1767',
-    duration: '00h 50m',
-    depDateTime: 'May 15, Fri, 07:05',
+    duration: '01h 50m',
+    depDateTime: demoDateTime(1, 7, 5),
     depCity: 'Delhi, India',
     depAirport: 'Delhi Indira Gandhi Intl Terminal 2',
-    arrDateTime: 'May 15, Fri, 07:55',
+    arrDateTime: demoDateTime(1, 7, 55),
     arrCity: 'Jaipur, India',
     arrAirport: 'Sanganer Arpt Terminal 2',
     refundable: 'Economy,Non Refundable',
     code: '*-319',
   },
-  {
-    airline: 'Air India',
-    flightNo: 'AI-9707',
-    duration: '2h 40m',
-    depDateTime: 'May 15, Fri, 13:10',
-    depCity: 'Jaipur, India',
-    depAirport: 'Sanganer Arpt Terminal 2',
-    arrDateTime: 'May 15, Fri, 15:50',
-    arrCity: 'Bengaluru, India',
-    arrAirport: 'Bengaluru Intl Arpt Terminal 2',
-    refundable: 'Economy,Non Refundable',
-    code: '*-737',
-  },
 ];
 
-export const ITINERARY_LAYOVERS = ['Layover Time - 6h 50m', 'Layover Time - 5h 15m'];
+export const ITINERARY_LAYOVERS = ['Layover Time - 6h 50m'];
 
 export const MEAL_OPTIONS = [
   { id: 'veg_vegan', name: 'Vegan Veg Meal' },
@@ -72,9 +66,9 @@ export const DEFAULT_DRAFT = {
   travellers: [
     {
       ti: 'Mr',
-      fN: 'SHRIKANT',
-      lN: 'B',
-      dob: '1991-06-15',
+      fN: '',
+      lN: '',
+      dob: '',
       pt: 'ADULT',
       pNa: 'IN',
       pNum: '',
@@ -83,8 +77,8 @@ export const DEFAULT_DRAFT = {
     },
   ],
   contact: {
-    email: 'kunal.a@triphobo.com',
-    phone: '1234567890',
+    email: '',
+    phone: '',
     countryCode: '+91',
     note: '',
   },
@@ -157,7 +151,14 @@ export function hydrateFromQuery(params) {
   const amountRaw = Number(params.get('amount'));
   const amount = Number.isFinite(amountRaw) && amountRaw > 0 ? amountRaw : existing.amount;
   const bookingId = params.get('bookingId') || existing.bookingId;
-  const next = mergeDraft(existing, { priceId, returnPriceId, multiPriceIds, amount, bookingId });
+  let itinerary = existing.itinerary || null;
+  try {
+    const rawItinerary = params.get('itinerary');
+    if (rawItinerary) itinerary = JSON.parse(rawItinerary);
+  } catch (_) {
+    itinerary = existing.itinerary || null;
+  }
+  const next = mergeDraft(existing, { priceId, returnPriceId, multiPriceIds, amount, bookingId, itinerary });
   writeFlowDraft(next);
   return next;
 }
@@ -252,5 +253,66 @@ export function buildFlowQuery(draft) {
   if (Array.isArray(draft.multiPriceIds) && draft.multiPriceIds.length) q.set('multiPriceIds', draft.multiPriceIds.join(','));
   if (draft.amount) q.set('amount', String(draft.amount));
   if (draft.bookingId) q.set('bookingId', String(draft.bookingId));
+  if (draft.itinerary) q.set('itinerary', JSON.stringify(draft.itinerary));
   return q.toString();
+}
+
+export function getItineraryDisplaySegments(itinerary) {
+  const flights = [
+    ...(Array.isArray(itinerary?.multiFlights) ? itinerary.multiFlights : []),
+    ...(itinerary?.multiFlights?.length ? [] : [itinerary?.onwardFlight, itinerary?.returnFlight]),
+  ].filter(Boolean);
+  const selectedSegments = flights.flatMap((flight) => (
+    Array.isArray(flight?.segments) ? flight.segments.map((segment) => ({ segment, flight })) : []
+  ));
+
+  if (!selectedSegments.length) return ITINERARY_SEGMENTS;
+
+  return selectedSegments.slice(0, 2).map(({ segment, flight }, index) => {
+    const departureTime = segment.departureTime || segment.dt || '';
+    const arrivalTime = segment.arrivalTime || segment.at || '';
+    const durationMinutes = Number(segment.durationMinutes || 0) || minutesBetween(departureTime, arrivalTime);
+    const cabin = segment.cabinClass || flight.cabinClass || 'ECONOMY';
+    return {
+      airline: segment.airline || flight.airline || 'Airline',
+      flightNo: segment.flightNumber || `FL-${index + 1}`,
+      duration: formatDuration(durationMinutes),
+      durationMinutes,
+      depDateTime: departureTime ? formatDisplayDateTime(departureTime) : 'Today',
+      depCity: segment.fromCity || segment.from || '--',
+      depAirport: segment.fromAirport || segment.from || '--',
+      arrDateTime: arrivalTime ? formatDisplayDateTime(arrivalTime) : 'Today',
+      arrCity: segment.toCity || segment.to || '--',
+      arrAirport: segment.toAirport || segment.to || '--',
+      refundable: `${cabin},${flight.refundable ? 'Refundable' : 'Non Refundable'}`,
+      code: segment.airlineCode || '',
+    };
+  });
+}
+
+export function getItineraryDurationText(segments) {
+  const total = (segments || []).reduce((sum, segment) => sum + Number(segment.durationMinutes || parseDuration(segment.duration)), 0);
+  return total > 0 ? formatDuration(total) : '--';
+}
+
+function minutesBetween(from, to) {
+  const start = new Date(from).getTime();
+  const end = new Date(to).getTime();
+  return Number.isFinite(start) && Number.isFinite(end) && end > start ? Math.round((end - start) / 60000) : 0;
+}
+
+function parseDuration(value) {
+  const match = String(value || '').match(/(?:(\d+)h)?\s*(?:(\d+)m)?/i);
+  return match ? Number(match[1] || 0) * 60 + Number(match[2] || 0) : 0;
+}
+
+function formatDuration(minutes) {
+  const safe = Math.max(0, Number(minutes || 0));
+  return `${Math.floor(safe / 60)}h ${safe % 60}m`;
+}
+
+function formatDisplayDateTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return `${date.toLocaleDateString('en-IN', { month: 'short', day: '2-digit', weekday: 'short' })}, ${date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false })}`;
 }

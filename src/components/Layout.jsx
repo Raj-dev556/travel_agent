@@ -256,7 +256,7 @@ function VisaDropdown() {
         )}
       >
         VISA
-        <span className="text-[10px]">▾</span>
+
       </button>
 
       {open && (

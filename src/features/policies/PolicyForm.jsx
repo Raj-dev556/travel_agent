@@ -103,7 +103,7 @@ export default function PolicyForm({ mode, grade }) {
       }
     >
       <form id="policy-form" onSubmit={handleSubmit} className="grid gap-3 sm:grid-cols-3">
-        <SelectInput label="Grade" value={form.grade} onChange={(value) => updateField('grade', value)} options={['G5', 'G4', 'G3', 'G2']} disabled={isEdit} required />
+        <TextInput label="Grade" value={form.grade} onChange={(value) => updateField('grade', value)} disabled={isEdit} required />
         <SelectInput label="Domestic Class" value={form.domestic} onChange={(value) => updateField('domestic', value)} options={['Economy', 'Premium Economy', 'Business']} required />
         <SelectInput label="International Class" value={form.international} onChange={(value) => updateField('international', value)} options={['Economy', 'Premium Economy', 'Business', 'First']} required />
         <SelectInput label="Hotel Star" value={form.hotel} onChange={(value) => updateField('hotel', value)} options={['3 Star', '4 Star', '5 Star']} required />

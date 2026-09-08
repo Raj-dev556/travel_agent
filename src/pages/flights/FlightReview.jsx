@@ -5,11 +5,11 @@ import { useMutation } from '@tanstack/react-query';
 import api from '../../api';
 import FlightFlowLayout from './FlightFlowLayout';
 import {
-  ITINERARY_LAYOVERS,
-  ITINERARY_SEGMENTS,
   buildBookPayload,
   buildFlowQuery,
   computeFare,
+  getItineraryDisplaySegments,
+  getItineraryDurationText,
   getMealName,
   hydrateFromQuery,
   mergeDraft,
@@ -73,6 +73,11 @@ export default function FlightReview() {
 
   const fare = useMemo(() => computeFare(draft.amount), [draft.amount]);
   const query = buildFlowQuery(draft);
+  const segments = useMemo(() => getItineraryDisplaySegments(draft.itinerary), [draft.itinerary]);
+  const firstSegment = segments[0] || {};
+  const lastSegment = segments[segments.length - 1] || firstSegment;
+  const routeLabel = `${firstSegment.depCity || '--'} -> ${lastSegment.arrCity || '--'}`;
+  const dateLabel = String(firstSegment.depDateTime || '--').split(',').slice(0, 2).join(',');
   const mealName = getMealName(draft.mealByTraveller?.[0]);
   const traveller = draft.travellers?.[0];
   const draftErrors = validateBookDraft(draft);
@@ -114,18 +119,18 @@ export default function FlightReview() {
       <div className="rounded-lg border border-[#ddd] bg-white">
         <div className="flex items-center justify-between border-b border-[#ddd] bg-[#f1f1f1] px-4 py-2 text-[14px] font-bold text-[#4b5967]">
           <div>
-            Pune <span className="mx-1">-&gt;</span> Bengaluru <span className="ml-1 text-[#7f8d9c]">on Thu, May 14th 2026</span>
+            {routeLabel} <span className="ml-1 text-[#7f8d9c]">on {dateLabel}</span>
           </div>
-          <div className="text-[19px] font-bold text-[#36475b]">17h 50m</div>
+          <div className="text-[19px] font-bold text-[#36475b]">{getItineraryDurationText(segments)}</div>
         </div>
 
-        {ITINERARY_SEGMENTS.map((segment, idx) => (
+        {segments.map((segment, idx) => (
           <div key={segment.flightNo}>
             <SegmentCard segment={segment} />
-            {idx < ITINERARY_LAYOVERS.length ? (
+            {idx < segments.length - 1 ? (
               <div className="flex justify-center border-b border-[#e3e3e3] py-2">
                 <span className="rounded-full border border-[#d6d6d6] bg-[#f2f2f2] px-4 py-1 text-[13px] text-[#4d5967]">
-                  Require to change Plane <span className="mx-2"> </span> {ITINERARY_LAYOVERS[idx]}
+                  Require to change Plane <span className="mx-2"> </span> {ITINERARY_LAYOVERS[idx] || 'Layover'}
                 </span>
               </div>
             ) : null}
