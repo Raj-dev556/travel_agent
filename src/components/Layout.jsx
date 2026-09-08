@@ -161,33 +161,15 @@ export default function Layout() {
       </main>
 
       {!hideFooter && (
-        <footer className="mt-8">
-          <div className="bg-slate-700 text-white">
-            <div className="max-w-screen-2xl mx-auto px-4 py-6 flex flex-col md:flex-row md:items-center gap-4">
-              <div>
-                <div className="text-lg font-semibold">How can we help you?</div>
-                <div className="text-xs text-slate-300">Contact us anytime.</div>
-              </div>
-              <div className="md:ml-auto flex items-start gap-6 text-sm">
-                <div>
-                  <div className="text-[11px] uppercase tracking-wide text-slate-300">Send us an email at</div>
-                  <div className="font-medium">support@corptravel.com</div>
-                </div>
-                <div className="w-px bg-slate-500 self-stretch hidden md:block" />
-                <div>
-                  <div className="text-[11px] uppercase tracking-wide text-slate-300">Or call us at</div>
-                  <div className="font-medium">022 62506250</div>
-                </div>
-              </div>
-            </div>
-          </div>
+        <footer>
+         
 
           <div className="bg-slate-800 text-slate-300">
             <div className="max-w-screen-2xl mx-auto px-4 py-8 grid grid-cols-2 md:grid-cols-4 gap-6">
               <div>
                 <div className="text-2xl font-extrabold tracking-tight">
                   <span className="text-accent-500">Corp</span>
-                  <span className="text-sky-400">Travel</span>
+                <span className="text-sky-400">Travel</span>
                 </div>
                 <div className="text-xs text-slate-400 mt-3">
                   (c) {new Date().getFullYear()} {tenantLabel}. All Rights Reserved.

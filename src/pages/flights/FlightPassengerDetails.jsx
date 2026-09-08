@@ -336,7 +336,7 @@ export default function FlightPassengerDetails() {
           <div className="mt-2 text-[13px] text-[#9ba6b2]">*These notes are for agent reference only no action will be taken against this.</div>
         </Section>
 
-        <Section title="GST Number for Business Travel (Optional)">
+        {/* <Section title="GST Number for Business Travel (Optional)">
           <div className="mb-3 flex items-center justify-between rounded border border-[#e3e3e3] bg-[#f9f9f9] px-3 py-2 text-[14px] text-[#6d7b8c]">
             <span>Select from History</span>
             <button type="button" className="font-semibold text-[#ff7f2a]">Clear</button>
@@ -372,7 +372,7 @@ export default function FlightPassengerDetails() {
             <input type="checkbox" checked={draft.gst.enabled} onChange={(e) => setDraft((prev) => mergeDraft(prev, { gst: { enabled: e.target.checked } }))} className="accent-[#ff7f2a]" />
             Save GST Details
           </label>
-        </Section>
+        </Section> */}
 
         <div className="flex items-center justify-between pb-2">
           <button type="button" onClick={() => navigate(`/flights/itinerary?${query}`)} className="inline-flex items-center rounded bg-[#ff7f2a] px-7 py-3 text-[15px] font-bold text-white">

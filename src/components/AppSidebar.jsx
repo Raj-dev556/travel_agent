@@ -38,7 +38,7 @@ export default function AppSidebar() {
     <aside
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`sticky border-r border-slate-800/60 bg-[linear-gradient(180deg,#0f172a_0%,#172033_52%,#1e293b_100%)] text-slate-100 shadow-xl shadow-slate-900/10 transition-all ${expanded ? 'w-64' : 'w-14'} flex shrink-0 flex-col`}
+      className={`sticky top-[4.5rem] h-[calc(100vh-4.5rem)] self-start border-r border-slate-800/60 bg-[linear-gradient(180deg,#0f172a_0%,#172033_52%,#1e293b_100%)] text-slate-100 shadow-xl shadow-slate-900/10 transition-all ${expanded ? 'w-64' : 'w-14'} flex shrink-0 flex-col`}
     >
       <nav className="flex-1 overflow-y-auto py-3">
         {visibleSections.map((item) => (
