@@ -15,6 +15,7 @@ import {
   Star,
 } from 'lucide-react';
 import clsx from 'clsx';
+import toast from 'react-hot-toast';
 import {
   addDays as addDateDays,
   addMonths,
@@ -552,8 +553,10 @@ function usePaginatedHotels(payload, enabled, refreshKey = '0', appliedFilters =
 
 export default function HotelResults() {
   const [params, setParams] = useSearchParams();
+  const navigate = useNavigate();
   const query = useMemo(() => ({
     city: params.get('city') || 'Mumbai',
+    tripId: params.get('tripId') || '',
     cityRegionId: params.get('cityRegionId') || params.get('cityCode') || '',
     countryCode: params.get('countryCode') || 'IN',
     destinationType: params.get('destinationType') || 'CITY',
@@ -567,6 +570,30 @@ export default function HotelResults() {
     rooms: safeParseRooms(params.get('rooms')),
     searchRequestId: params.get('searchRequestId') || '',
   }), [params]);
+
+  const [addedHotelId, setAddedHotelId] = useState(null);
+  const [addingHotelId, setAddingHotelId] = useState(null);
+  const addingHotelRef = useRef(null);
+
+  async function addHotelToTrip(hotel) {
+    const hotelId = hotel?.id || hotel?.hotelId || hotel?.tjHotelId;
+    if (!query.tripId || !hotelId || addingHotelRef.current) return;
+    addingHotelRef.current = hotelId;
+    setAddingHotelId(hotelId);
+    try {
+      await api.put(`/trips/${encodeURIComponent(query.tripId)}`, {
+        hotel_search: hotelRecordForTrip(hotel, query),
+      });
+      setAddedHotelId(hotelId);
+      toast.success('Hotel added to trip');
+      navigate(`/trip-lifecycle/${query.tripId}/approval`);
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Unable to add hotel to trip');
+    } finally {
+      addingHotelRef.current = null;
+      setAddingHotelId(null);
+    }
+  }
 
   const [cityInput, setCityInput] = useState(query.city);
   const [cityRegionIdInput, setCityRegionIdInput] = useState(query.cityRegionId);
@@ -1627,6 +1654,9 @@ export default function HotelResults() {
                     view={view}
                     isFavourite={favouriteIdSet.has(String(hotel.id))}
                     onToggleFavourite={toggleFavouriteHotel}
+                    onAddToTrip={query.tripId ? addHotelToTrip : undefined}
+                    isAdded={addedHotelId === hotel.id || addedHotelId === hotel.hotelId}
+                    isAdding={addingHotelId === hotel.id || addingHotelId === hotel.hotelId}
                   />
                 ))}
               </div>
@@ -1664,7 +1694,27 @@ export default function HotelResults() {
   );
 }
 
-function HotelCard({ hotel, query, view, isFavourite, onToggleFavourite }) {
+function hotelRecordForTrip(hotel, query) {
+  return {
+    checkIn: query.checkin,
+    checkOut: query.checkout,
+    cityRegionId: Number(query.cityRegionId),
+    city: query.city || hotel.city || '',
+    hotelId: hotel.tjHotelId || hotel.hotelId || hotel.id || '',
+    hotelName: hotel.name || '',
+    optionId: hotel.optionId || '',
+    correlationId: hotel.correlationId || '',
+    starRating: Number(hotel.starRating || 0),
+    mealBasis: hotel.mealBasis || '',
+    totalRateINR: Number(hotel.totalRateINR || 0),
+    nightlyRateINR: Number(hotel.nightlyRateINR || 0),
+    reviewScore: Number(hotel.reviewScore || 0),
+    reviewCount: Number(hotel.reviewCount || 0),
+    images: Array.isArray(hotel.images) ? hotel.images : [],
+  };
+}
+
+function HotelCard({ hotel, query, view, isFavourite, onToggleFavourite, onAddToTrip, isAdded, isAdding }) {
   const navigate = useNavigate();
   const correlationId = hotel.correlationId || '';
 
@@ -1791,6 +1841,20 @@ function HotelCard({ hotel, query, view, isFavourite, onToggleFavourite }) {
             </div>
           </div>
         </Link>
+        {onAddToTrip && (
+          <button
+            type="button"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              if (!isAdding && !isAdded) onAddToTrip(hotel);
+            }}
+            disabled={isAdding || isAdded}
+            className="mt-2 w-full rounded-xl border border-orange-300 bg-orange-50 py-2.5 text-sm font-bold text-orange-700 hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {isAdding ? 'Adding...' : isAdded ? 'Added to Trip' : 'Add to Trip'}
+          </button>
+        )}
       </article>
     );
   }
@@ -1881,6 +1945,20 @@ function HotelCard({ hotel, query, view, isFavourite, onToggleFavourite }) {
               <span className="ml-1 text-xl font-medium text-slate-500">Total</span>
             </div>
             <div className="mt-1 text-sm text-slate-500">(Incl. of all taxes)</div>
+            {onAddToTrip && (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  if (!isAdding && !isAdded) onAddToTrip(hotel);
+                }}
+                disabled={isAdding || isAdded}
+                className="mt-3 w-full rounded-xl border border-orange-300 bg-orange-50 px-4 py-2.5 text-sm font-bold text-orange-700 hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {isAdding ? 'Adding...' : isAdded ? 'Added to Trip' : 'Add to Trip'}
+              </button>
+            )}
           </div>
         </div>
       </div>

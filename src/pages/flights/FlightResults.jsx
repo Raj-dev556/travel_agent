@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
+import toast from 'react-hot-toast';
+import api from '../../api';
 import {
   ArrowRight,
   Briefcase,
@@ -20,7 +22,6 @@ import {
   IndianRupee,
   Zap,
 } from 'lucide-react';
-import api from '../../api';
 import {
   TripTab,
   AirportField,
@@ -503,6 +504,21 @@ function initModifyForm(query, params) {
   };
 }
 
+function flightRecordForTrip(flight, search) {
+  const firstSegment = flight?.segments?.[0] || {};
+  return {
+    flightId: flight?.id || '',
+    priceId: flight?.priceId || '',
+    fromCityOrAirport: { code: firstSegment.from || search.from || '' },
+    toCityOrAirport: { code: firstSegment.to || search.to || '' },
+    travelDate: search.departDate || firstSegment.departureTime || '',
+    airline: firstSegment.airline || flight?.airline || '',
+    flightNumber: firstSegment.flightNumber || '',
+    totalPriceINR: Number(flight?.totalPriceINR || 0),
+    segments: Array.isArray(flight?.segments) ? flight.segments : [],
+  };
+}
+
 export default function FlightResults() {
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
@@ -545,6 +561,49 @@ export default function FlightResults() {
     },
     [paramsKey],
   );
+
+  const tripId = params.get('tripId') || '';
+  const [addedFlightId, setAddedFlightId] = useState(null);
+  const [addingFlightId, setAddingFlightId] = useState(null);
+  const addFlight = useMutation({
+    mutationFn: ({ flight }) => api.put(`/trips/${encodeURIComponent(tripId)}`, {
+      flight_search: [flightRecordForTrip(flight, query)],
+    }).then((response) => response.data),
+    onMutate: ({ flight }) => setAddingFlightId(flight?.id || flight?.priceId || null),
+    onSuccess: (_, { flight }) => {
+      setAddedFlightId(flight?.id || flight?.priceId || null);
+      toast.success('Flight added to trip');
+      const hotelCity = params.get('hotelCity') || '';
+      const hotelCityRegionId = params.get('hotelCityRegionId') || '';
+      const hotelCheckin = params.get('hotelCheckin') || '';
+      const hotelCheckout = params.get('hotelCheckout') || '';
+      if (hotelCity && hotelCheckin && hotelCheckout) {
+        const hotelParams = new URLSearchParams({
+          tripId,
+          city: hotelCity,
+          checkin: hotelCheckin,
+          checkout: hotelCheckout,
+          destinationType: 'CITY',
+          countryCode: 'IN',
+          searchRequestId: String(Date.now()),
+        });
+        if (hotelCityRegionId) {
+          hotelParams.set('cityCode', hotelCityRegionId);
+          hotelParams.set('cityRegionId', hotelCityRegionId);
+        }
+        navigate(`/hotels/results?${hotelParams.toString()}`);
+      } else {
+        navigate(`/hotels?tripId=${encodeURIComponent(tripId)}`);
+      }
+    },
+    onError: (error) => toast.error(error?.response?.data?.message || 'Unable to add flight to trip'),
+    onSettled: () => setAddingFlightId(null),
+  });
+
+  const addFlightToTrip = (flight) => {
+    if (!tripId || addFlight.isPending) return;
+    addFlight.mutate({ flight });
+  };
 
   const [showModifyPanel, setShowModifyPanel] = useState(false);
   const [modify, setModify] = useState(() => initModifyForm(query, params));
@@ -1775,6 +1834,9 @@ export default function FlightResults() {
               }}
               bookingFlightId={bookingFlightId}
               bookEnabled
+              onAddToTrip={tripId ? addFlightToTrip : undefined}
+              addedFlightId={addedFlightId}
+              addingFlightId={addingFlightId}
             />
           )}
 
@@ -1850,6 +1912,9 @@ export default function FlightResults() {
               }}
               bookingFlightId={bookingFlightId}
               bookEnabled
+              onAddToTrip={tripId ? addFlightToTrip : undefined}
+              addedFlightId={addedFlightId}
+              addingFlightId={addingFlightId}
             />
           )}
           {isRoundTrip && (
@@ -2374,6 +2439,9 @@ function ResultColumn({
   onFareSelect = () => { },
   bookingFlightId = null,
   bookEnabled = false,
+  onAddToTrip,
+  addedFlightId = null,
+  addingFlightId = null,
 }) {
   const [expandedId, setExpandedId] = useState(null);
   const [compareId, setCompareId] = useState(null);
@@ -2498,6 +2566,9 @@ function ResultColumn({
               selected={flight.id === selectedId}
               onSelect={() => onSelect(flight.id)}
               onBook={() => onBook(flight)}
+              onAddToTrip={onAddToTrip ? () => onAddToTrip(flight) : undefined}
+              isAdded={addedFlightId === flight.id || addedFlightId === flight.priceId}
+              isAdding={addingFlightId === flight.id || addingFlightId === flight.priceId}
               onFareSelect={(fare) => onFareSelect(flight, fare)}
               selectedFareId={selectedFareId}
               fareGroupKey={type}
@@ -2705,6 +2776,9 @@ function FlightCard({
   selected,
   onSelect,
   onBook,
+  onAddToTrip,
+  isAdded = false,
+  isAdding = false,
   onFareSelect,
   selectedFareId: selectedFareIdFromColumn = null,
   fareGroupKey = 'onward',
@@ -2888,6 +2962,20 @@ function FlightCard({
                   'BOOK'
                 )}
               </button>
+
+              {onAddToTrip && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!isAdding && !isAdded) onAddToTrip();
+                  }}
+                  disabled={isAdding || isAdded}
+                  className="rounded-xl border border-orange-300 bg-orange-50 py-3 text-sm font-bold text-orange-700 hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {isAdding ? 'Adding...' : isAdded ? 'Added to Trip' : 'Add to Trip'}
+                </button>
+              )}
 
               {fares.length > 1 && (
                 <button
@@ -3285,6 +3373,3 @@ function FareRulesPanel({ seg }) {
     </div>
   );
 }
-
-
-
