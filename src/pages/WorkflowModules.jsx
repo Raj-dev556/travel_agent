@@ -77,9 +77,9 @@ export function TripWorkflow({ action = 'listing', tripId }) {
   const travelerOptions = isEmployee ? (loggedInEmployee ? [loggedInEmployee] : []) : employees;
   const budgets = options.data?.budgets || [];
   const trips = useQuery({ queryKey: ['trips'], queryFn: () => api.get('/trips', { params: { limit: 500 } }).then((r) => r.data) });
-  const detail = useQuery({
+  const detail = useQuery({ queryKey: ['trip', tripId], queryFn: () => api.get(`/trips/${tripId}`).then((r) => r.data), enabled: Boolean(tripId) });
   const [suggestedEmployeeId, setSuggestedEmployeeId] = useState('');
-  const displayedTrips = (trips.data?.items || []).filter((trip) => !suggestedEmployeeId || trip.requester_employee_id === suggestedEmployeeId || trip.travelers?.some((traveler) => traveler.employee_id === suggestedEmployeeId)); queryKey: ['trip', tripId], queryFn: () => api.get(`/trips/${tripId}`).then((r) => r.data), enabled: Boolean(tripId) });
+  const displayedTrips = (trips.data?.items || []).filter((trip) => !suggestedEmployeeId || trip.requester_employee_id === suggestedEmployeeId || trip.travelers?.some((traveler) => traveler.employee_id === suggestedEmployeeId));
   const [form, setForm] = useState(() => ({
     title: '',
     traveler_ids: isEmployee && currentUser?.employeeId ? [currentUser.employeeId] : [],
