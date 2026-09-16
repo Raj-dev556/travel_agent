@@ -1,20 +1,15 @@
 import { Briefcase, ChevronLeft, Hourglass, Plane } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
-import api from '../../api';
 import FlightFlowLayout from './FlightFlowLayout';
 import {
-  buildBookPayload,
   buildFlowQuery,
   computeFare,
   getItineraryDisplaySegments,
   getItineraryDurationText,
   getMealName,
   hydrateFromQuery,
-  mergeDraft,
   validateBookDraft,
-  writeFlowDraft,
 } from './flightFlowData';
 
 function SegmentCard({ segment }) {
@@ -82,31 +77,6 @@ export default function FlightReview() {
   const traveller = draft.travellers?.[0];
   const draftErrors = validateBookDraft(draft);
   const canBook = draftErrors.length === 0;
-
-  const book = useMutation({
-    mutationFn: () => api.post('/flights/book', buildBookPayload(draft)).then((r) => r.data),
-    onSuccess: (data) => {
-      const bookingId = data?.bookingId || data?.bookingInfos?.[0]?.bookingId || '';
-      const next = mergeDraft(draft, { bookingId });
-      writeFlowDraft(next);
-      setDraft(next);
-      navigate(`/flights/payment?${buildFlowQuery(next)}`);
-    },
-    onError: (err) => {
-      if (err?.response?.status === 401) {
-        navigate('/login');
-        return;
-      }
-      const backendValidation = err?.response?.data?.details;
-      const detailText = Array.isArray(backendValidation) && backendValidation.length ? ` ${backendValidation.join(' ')}` : '';
-      setAlert({
-        type: 'error',
-        text:
-          (err?.response?.data?.message || 'There is something went wrong with backend service. It could be due to invalid/bad data.') +
-          detailText,
-      });
-    },
-  });
 
   return (
     <FlightFlowLayout
@@ -201,12 +171,12 @@ export default function FlightReview() {
                   });
                   return;
                 }
-                book.mutate();
+                navigate(`/flights/payment?${query}`);
               }}
-              disabled={book.isPending || !canBook}
+              disabled={!canBook}
               className="rounded bg-[#ff7f2a] px-8 py-3 text-[17px] font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {book.isPending ? 'PROCESSING...' : 'PROCEED TO PAY >>'}
+              PROCEED TO PAY >>
             </button>
           </div>
         </div>

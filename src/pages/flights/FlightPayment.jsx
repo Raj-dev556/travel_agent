@@ -1,10 +1,10 @@
 import { ChevronLeft, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '../../api';
 import FlightFlowLayout from './FlightFlowLayout';
-import { buildFlowQuery, computeFare, hydrateFromQuery } from './flightFlowData';
+import { buildBookPayload, buildFlowQuery, computeFare, hydrateFromQuery } from './flightFlowData';
 
 function TermsCard({ accepted, setAccepted, amountLabel, onPay, paying }) {
   return (
@@ -18,7 +18,7 @@ function TermsCard({ accepted, setAccepted, amountLabel, onPay, paying }) {
         disabled={paying || !accepted}
         className="rounded bg-[#f3a97a] px-4 py-3 text-[14px] font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {paying ? 'Processing...' : `Pay Now ${amountLabel}`}
+        {paying ? 'Processing your flight booking...' : `Pay Now ${amountLabel}`}
       </button>
       <label className="mt-4 flex items-center gap-2 text-[14px] text-[#2d3d4f]">
         <input type="checkbox" checked={accepted} onChange={(e) => setAccepted(e.target.checked)} className="h-5 w-5 accent-[#ff7f2a]" />
@@ -37,6 +37,7 @@ export default function FlightPayment() {
   const [paying, setPaying] = useState(false);
   const [topAlert, setTopAlert] = useState(null);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const processingRef = useRef(false);
   const query = buildFlowQuery(draft);
 
   const canUseRazorpayOrder = /^[a-f\d]{24}$/i.test(draft.bookingId || '');
@@ -97,6 +98,8 @@ export default function FlightPayment() {
     });
 
   const proceedPayment = async () => {
+    if (processingRef.current) return;
+    processingRef.current = true;
     setPaying(true);
     setTopAlert({
       type: 'warning',
@@ -107,7 +110,25 @@ export default function FlightPayment() {
       if (canUseRazorpayOrder && orderData && razorpayLoaded) {
         await payViaRazorpay();
       }
-      const resolvedBookingId = draft.bookingId || `STUB-${Date.now()}`;
+      const processPayload = buildBookPayload(draft);
+      if (draft.bookingId) processPayload.bookingId = draft.bookingId;
+      const processResponse = await api.post('/bookings/flight/process', processPayload).then((r) => r.data);
+      const resolvedBookingId =
+        processResponse?.order_id ||
+        processResponse?.orderId ||
+        processResponse?.bookingId ||
+        processResponse?.data?.order_id ||
+        processResponse?.data?.orderId ||
+        processResponse?.data?.bookingId ||
+        processResponse?.booking?.order_id ||
+        processResponse?.booking?.orderId ||
+        processResponse?.booking?.bookingId ||
+        draft.bookingId;
+
+      if (!resolvedBookingId) {
+        throw new Error('Flight booking was processed but no booking reference was returned.');
+      }
+
       const confirmParams = new URLSearchParams(query);
       confirmParams.set('bookingId', resolvedBookingId);
       navigate(`/flights/confirm?${confirmParams.toString()}`);
@@ -116,6 +137,7 @@ export default function FlightPayment() {
         type: 'error',
         text: err?.response?.data?.message || 'There is something went wrong with backend service. It could be due to invalid/bad data.',
       });
+      processingRef.current = false;
       setPaying(false);
     }
   };

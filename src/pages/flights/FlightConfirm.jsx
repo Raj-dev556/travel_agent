@@ -132,7 +132,7 @@ export default function FlightConfirm() {
 
   const { data, isLoading, refetch, error } = useQuery({
     queryKey: ['flightBooking', bookingId],
-    queryFn: () => api.post('/flights/booking-details', { bookingId }).then((r) => r.data),
+    queryFn: () => api.get(`/bookings/${encodeURIComponent(bookingId)}/record`).then((r) => r.data),
     enabled: canFetchLiveDetails,
     retry: (failureCount, err) => {
       const statusCode = err?.response?.status;
